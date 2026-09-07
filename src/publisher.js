@@ -25,11 +25,12 @@ export class PublisherError extends Error {
 }
 
 export function readCredentials(env = process.env) {
+  const trim = (v) => (typeof v === 'string' ? v.trim() : v);
   const c = {
-    blogId: env.BLOGGER_BLOG_ID,
-    clientId: env.GOOGLE_CLIENT_ID,
-    clientSecret: env.GOOGLE_CLIENT_SECRET,
-    refreshToken: env.GOOGLE_REFRESH_TOKEN,
+    blogId: trim(env.BLOGGER_BLOG_ID),
+    clientId: trim(env.GOOGLE_CLIENT_ID),
+    clientSecret: trim(env.GOOGLE_CLIENT_SECRET),
+    refreshToken: trim(env.GOOGLE_REFRESH_TOKEN),
   };
   const missing = Object.entries(c).filter(([, v]) => !v).map(([k]) => k);
   if (missing.length) {

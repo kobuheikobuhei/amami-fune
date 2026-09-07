@@ -42,6 +42,13 @@ async function main() {
   const routeById = Object.fromEntries(cfg.routes.map((r) => [r.id, r]));
   const notify = [];
 
+  // 値そのものは出さず、長さだけを記録する。
+  // 手元と実行環境で認証情報が食い違っていないかを突き合わせるため。
+  const credLengths = ['BLOGGER_BLOG_ID', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN']
+    .map((k) => k + '=' + ((process.env[k] ?? '').trim().length))
+    .join(' ');
+  log('認証情報の長さ: ' + credLengths);
+
   const prevMode = readMode();
   let mode = prevMode;
   const weatherSource = cfg.sources.find((s) => s.id === 'jma-warning-amami');
