@@ -7,9 +7,11 @@
 
 import { AUTO_PUBLISHABLE, NOT_ARTICLE } from './lib/status.js';
 
-// 記事より古い情報は投稿しない。初回実行や長期停止からの復帰で
-// 過去の案内を一斉に掘り起こさないための保険。
-const ARTICLE_MAX_AGE_DAYS = 7;
+// 発表日時の古さでは足切りしない。
+// A"LINE は既存の記事を書き換えて新しい便の案内を載せるが、
+// RSS の発表日時は最初に作られたときのまま更新されない。
+// 8月28日付の記事に9月8日の便の案内が入る、ということが実際に起きる。
+// 古い情報を掘り起こさないための歯止めは、運航日そのもので判断する。
 
 /** 便を一意に識別する鍵。状態はここに含めない（状態は時間とともに変わるため） */
 export function eventKey(entry, routeId) {
@@ -35,11 +37,11 @@ export function toCandidates(observations, { now }) {
     for (const entry of obs.entries ?? []) {
       if (!entry.status || NOT_ARTICLE.has(entry.status)) continue;
 
-      const publishedAt = obs.published_at ?? now;
-      if (daysBetween(now, publishedAt) > ARTICLE_MAX_AGE_DAYS) continue;
 
       // 昨日より前に終わった運航日は、今さら知らせても意味がないので投稿しない。
       // 期間の場合は終わりの日で判断する（ドック期間の途中で始めても掲載されるように）。
+      const publishedAt = obs.published_at ?? now;
+
       const lastDay = entry.service_date_end ?? entry.service_date;
       if (daysBetween(now, lastDay + 'T23:59:59Z') > 1) continue;
 
