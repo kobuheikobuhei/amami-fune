@@ -128,6 +128,16 @@ export function writePageIds(m) {
 // ここでは本文をファイルに書き出すだけにする。
 
 const NOTIFY_PATH = join(STATE_DIR, 'notify.md');
+const DIAGNOSTICS_PATH = join(STATE_DIR, 'diagnostics.json');
+
+/**
+ * 実行環境の状態を記録する。
+ * 実行ログを開かなくても、リポジトリを見れば何が起きたか分かるようにするため。
+ * 認証情報は値を持たず、長さだけを記録する。
+ */
+export function writeDiagnostics(data) {
+  writeJson(DIAGNOSTICS_PATH, data);
+}
 
 export function writeNotification(lines) {
   ensureDir(NOTIFY_PATH);
