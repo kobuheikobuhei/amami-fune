@@ -154,3 +154,39 @@ export function publishDecision(event) {
   if (event.confidence !== 'A') return 'draft';
   return AUTO_PUBLISHABLE.has(event.status) ? 'publish' : 'draft';
 }
+
+
+/**
+ * 継続中のお知らせを取り出す。
+ *
+ * 「機関故障により当面の間運休」のような案内は、開始日が過去のため
+ * 便ごとのイベントとしては足切りされて消える。しかし公式が今も掲載している以上、
+ * それは現在も続いている状態であり、読者にとっては個別の欠航より影響が大きい。
+ *
+ * 公式のフィードに今も載っていて、かつ今日以降の便を持たない案内を
+ * 「継続中」として扱う。
+ */
+export function ongoingNotices(observations, { now }) {
+  const today = new Date(now).toISOString().slice(0, 10);
+  const notices = [];
+
+  for (const obs of observations) {
+    if (!obs.status || NOT_ARTICLE.has(obs.status)) continue;
+    const hasFuture = (obs.entries ?? []).some(
+      (e) => (e.service_date_end ?? e.service_date) >= today
+    );
+    if (hasFuture) continue;
+
+    notices.push({
+      route_id: obs.route_id,
+      ship: obs.ship,
+      status: obs.status,
+      detail: obs.detail,
+      title: obs.title,
+      source_url: obs.link,
+      since: (obs.entries ?? [])[0]?.service_date ?? null,
+      published_at: obs.published_at,
+    });
+  }
+  return notices;
+}

@@ -142,7 +142,7 @@ function warningSection(weather) {
 }
 
 /** 3社の運航状況の要約 */
-function operationSection(routes, eventsByRoute, today) {
+function operationSection(routes, eventsByRoute, noticesByRoute, today) {
   const blocks = routes.map(function (route) {
     const events = (eventsByRoute[route.id] || [])
       .filter(function (e) { return (e.service_date_end || e.service_date) >= today; })
@@ -162,13 +162,19 @@ function operationSection(routes, eventsByRoute, today) {
         }).join('')
       : '<li style="color:#6b7280">欠航・ダイヤ変更の発表はありません</li>';
 
-    return '<h3>' + route.name + '</h3><ul>' + items + '</ul>';
+    const notices = (noticesByRoute[route.id] || []).map(function (n) {
+      const label = n.detail || STATUS_LABEL[n.status];
+      const ship = n.ship ? n.ship + 'は' : '';
+      return '<li style="color:#b45309">' + ship + '<strong>' + label + '</strong>（継続中）</li>';
+    }).join('');
+
+    return '<h3>' + route.name + '</h3><ul>' + notices + items + '</ul>';
   }).join('');
 
   return '<h2>運航状況</h2>' + blocks;
 }
 
-export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, now }) {
+export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, now }) {
   const today = new Date(now).toISOString().slice(0, 10);
   const routePorts = routes && routes.length ? (routes[0].ports || []) : [];
   const active = typhoons || [];
@@ -188,7 +194,7 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, now
       head +
       trackSection(nearest, routePorts) +
       warningSection(weather) +
-      operationSection(routes, eventsByRoute, today) +
+      operationSection(routes, eventsByRoute, noticesByRoute, today) +
       '<hr>' +
       '<p style="font-size:0.9em;color:#555">台風の情報の出典: 気象庁（' +
       '<a href="https://www.jma.go.jp/" target="_blank" rel="noopener">https://www.jma.go.jp/</a>）<br>' +

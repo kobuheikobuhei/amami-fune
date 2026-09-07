@@ -16,7 +16,7 @@ import {
   readHealth, writeHealth, recordSuccess, recordFailure,
   readMode, writeMode, readPageIds, writePageIds, writeNotification, writeDiagnostics,
 } from './lib/state.js';
-import { toCandidates, diffAgainstLedger, publishDecision } from './curator.js';
+import { toCandidates, diffAgainstLedger, publishDecision, ongoingNotices } from './curator.js';
 import { buildArticle } from './writer.js';
 import { buildStatusPage } from './statuspage.js';
 import { watchTyphoon } from './watchers/typhoon.js';
@@ -121,6 +121,7 @@ async function main() {
   }
 
   const candidates = toCandidates(observations, { now });
+  const notices = ongoingNotices(observations, { now });
   const ledger = latestEventsByKey(readEvents());
   const actions = diffAgainstLedger(candidates, ledger, { seedOnlySources, now });
 
@@ -191,6 +192,7 @@ async function main() {
       health: routeHealth,
       officialUrl: operator?.site ?? '#',
       referenceLinks: cfg.referenceLinks,
+      notices: notices.filter((n) => n.route_id === routeId),
       now,
       failThreshold: FAIL_THRESHOLD,
     });
@@ -217,6 +219,10 @@ async function main() {
       weather: weatherResult,
       routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
       eventsByRoute,
+      noticesByRoute: notices.reduce((acc, n) => {
+        (acc[n.route_id] ??= []).push(n);
+        return acc;
+      }, {}),
       now,
     });
     const r = await publisher.upsertPage(pageIds.__typhoon ?? null, typhoonPage);

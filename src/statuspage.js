@@ -59,7 +59,25 @@ function failureBanner(sourceHealth, failThreshold) {
  * 航路の常設ページを組み立てる。
  * events は当該航路の最新イベント（event_key ごとに1件）。
  */
-export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], now, failThreshold = 2 }) {
+/**
+ * 継続中のお知らせ。
+ * 「機関故障により当面の間運休」のように、日付では表せないが
+ * 今も続いている状態を、個別の便より先に見せる。
+ */
+function noticeSection(notices) {
+  if (!notices.length) return '';
+  const items = notices.map(function (n) {
+    const label = (n.detail ? DETAIL_DISPLAY[n.detail] || n.detail : null) || STATUS_LABEL[n.status];
+    const ship = n.ship ? n.ship + 'は' : '';
+    const since = n.since ? '（' + jpDate(n.since) + 'から）' : '';
+    return '<li>' + ship + '<strong style="color:#d97706">' + label + '</strong>' + since +
+      '　<a href="' + n.source_url + '" target="_blank" rel="noopener">公式</a></li>';
+  }).join('');
+  return '<div style="border:2px solid #d97706;background:#fffbeb;padding:10px 14px;margin:0 0 16px">' +
+    '<strong>継続中のお知らせ</strong><ul style="margin:6px 0 0">' + items + '</ul></div>';
+}
+
+export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], notices = [], now, failThreshold = 2 }) {
   const today = new Date(now).toISOString().slice(0, 10);
 
   // 今日以降の便のみ。過去の欠航を現在の状態として見せない。
@@ -102,9 +120,9 @@ ${rows}
 </table>`
     : isBroken
       ? ''
-      : `<p style="color:#6b7280">現在、欠航・ダイヤ変更の発表はありません（平常運航）。</p>`;
+      : notices.length ? `<p style="color:#6b7280">上記のほかに、日を指定した欠航・ダイヤ変更の発表はありません。</p>` : `<p style="color:#6b7280">現在、欠航・ダイヤ変更の発表はありません（平常運航）。</p>`;
 
-  const body = `${banner}<p style="color:#555;font-size:0.9em">最終更新: ${jst(now)}</p>
+  const body = `${banner}${noticeSection(notices)}<p style="color:#555;font-size:0.9em">最終更新: ${jst(now)}</p>
 
 <h2>${route.name}</h2>
 ${route.ships?.length ? `<p style="color:#555">運航船: ${route.ships.join(' / ')}</p>` : ''}
