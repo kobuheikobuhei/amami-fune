@@ -1,10 +1,10 @@
 {
-  "at": "2026-09-07T14:42:12.845Z",
+  "at": "2026-09-07T14:47:33.151Z",
   "credential_lengths": {
     "BLOGGER_BLOG_ID": 19,
-    "GOOGLE_CLIENT_ID": 13,
+    "GOOGLE_CLIENT_ID": 72,
     "GOOGLE_CLIENT_SECRET": 35,
-    "GOOGLE_REFRESH_TOKEN": 32
+    "GOOGLE_REFRESH_TOKEN": 103
   },
   "result": {
     "mode": "normal",
@@ -14,7 +14,7 @@
     "created": 0,
     "updated": 0,
     "seeded": 0,
-    "status_pages": 0,
-    "notifications": 3
+    "status_pages": 3,
+    "notifications": 0
   }
 }
