@@ -2,19 +2,19 @@
   "aline-kagoshima-rss": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-07T23:07:51.634Z",
+    "last_success": "2026-09-07T23:11:04.584Z",
     "last_error": null
   },
   "aline-amami-rss": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-07T23:07:52.883Z",
+    "last_success": "2026-09-07T23:11:05.541Z",
     "last_error": null
   },
   "marix-service-rss": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-07T23:07:53.819Z",
+    "last_success": "2026-09-07T23:11:07.119Z",
     "last_error": null
   }
 }

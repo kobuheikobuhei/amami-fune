@@ -98,12 +98,6 @@ function trackSection(nearest, routePorts) {
     '<li><a href="https://www.jma.go.jp/bosai/map.html#contents=typhoon" target="_blank" rel="noopener">気象庁　台風情報</a>（日本の公式発表）</li>' +
     '<li><a href="https://www.metoc.navy.mil/jtwc/jtwc.html" target="_blank" rel="noopener">米海軍 合同台風警報センター（JTWC）</a>（英語）</li>' +
     '</ul>' +
-    '<h3>風の状況（Windy）</h3>' +
-    '<div style="position:relative;padding-bottom:75%;height:0;overflow:hidden;max-width:100%;margin-bottom:8px">' +
-    '<iframe src="' + windy + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" ' +
-    'frameborder="0" loading="lazy" title="Windy 風の状況"></iframe>' +
-    '</div>' +
-    '<p style="font-size:0.85em;color:#666">提供: <a href="https://www.windy.com" target="_blank" rel="noopener">Windy.com</a></p>' +
     '<h3>米海軍（JTWC）の進路図の見方</h3>' +
     '<p>JTWCのページは英語で、進路図にたどり着くまでに数手かかります。手順は次のとおりです。</p>' +
     '<ol>' +
@@ -126,7 +120,13 @@ function trackSection(nearest, routePorts) {
     '</ul>' +
     '<p>短い時間の平均ほど瞬間的な強い風を拾うため、米海軍の数値の方が大きく出ます。' +
     '台風の階級の呼び方も両者で異なります。' +
-    '日本の船会社は気象庁の情報をもとに運航を判断しています。</p>';
+    '日本の船会社は気象庁の情報をもとに運航を判断しています。</p>' +
+    '<h3>風の状況（Windy）</h3>' +
+    '<div style="position:relative;padding-bottom:75%;height:0;overflow:hidden;max-width:100%;margin-bottom:8px">' +
+    '<iframe src="' + windy + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" ' +
+    'frameborder="0" loading="lazy" title="Windy 風の状況"></iframe>' +
+    '</div>' +
+    '<p style="font-size:0.85em;color:#666">提供: <a href="https://www.windy.com" target="_blank" rel="noopener">Windy.com</a></p>';
 }
 
 /** 奄美地方の警報 */
