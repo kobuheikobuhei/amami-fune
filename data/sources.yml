@@ -214,3 +214,7 @@ reference_links:
     url: https://www.jal.co.jp/jp/ja/dom/status/
   - label: Peach 運航状況
     url: https://www.flypeach.com/jp/lp/flight-status
+
+  - label: 船舶位置（AIS）冒険あそび倉庫
+    url: https://www.bouken-asobi.com/map_ais.html
+    note: 位置情報は遅延や誤差があり、航行の判断には使えない旨が提供元に明記されている

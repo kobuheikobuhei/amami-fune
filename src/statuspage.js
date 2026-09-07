@@ -59,7 +59,7 @@ function failureBanner(sourceHealth, failThreshold) {
  * 航路の常設ページを組み立てる。
  * events は当該航路の最新イベント（event_key ごとに1件）。
  */
-export function buildStatusPage({ route, operator, events, health, officialUrl, now, failThreshold = 2 }) {
+export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], now, failThreshold = 2 }) {
   const today = new Date(now).toISOString().slice(0, 10);
 
   // 今日以降の便のみ。過去の欠航を現在の状態として見せない。
@@ -112,6 +112,12 @@ ${route.ships?.length ? `<p style="color:#555">運航船: ${route.ships.join(' /
 ${table}
 
 ${route.notes ? `<h3>お知らせ</h3>\n<p>${route.notes.trim().replace(/\n/g, '<br>')}</p>` : ''}
+
+${referenceLinks.length ? `<h3>あわせて確認できるもの</h3>
+<ul>
+${referenceLinks.map((l) => `<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>${l.note ? `<br><span style="font-size:0.85em;color:#666">${l.note}</span>` : ''}</li>`).join('')}
+</ul>
+<p style="font-size:0.9em;color:#555">当サイトが監視している情報ではありません。各提供元でご確認ください。</p>` : ''}
 
 <h3>公式情報</h3>
 <p><a href="${officialUrl}" target="_blank" rel="noopener">${operator?.name ?? route.name} 公式サイト</a></p>

@@ -179,6 +179,7 @@ async function main() {
       events: routeEvents,
       health: routeHealth,
       officialUrl: operator?.site ?? '#',
+      referenceLinks: cfg.referenceLinks,
       now,
       failThreshold: FAIL_THRESHOLD,
     });
