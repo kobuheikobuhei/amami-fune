@@ -24,6 +24,10 @@ jobs:
   watch:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # 条件式の中では secrets を直接参照できない。
+    # メール通知が未設定のときに通知手順を飛ばせるよう、ここで環境変数へ移す。
+    env:
+      MAIL_CONFIGURED: ${{ secrets.MAIL_USERNAME != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -72,7 +76,7 @@ jobs:
           fi
 
       - name: メール通知
-        if: steps.notify.outputs.send == 'true' && secrets.MAIL_USERNAME != ''
+        if: steps.notify.outputs.send == 'true' && env.MAIL_CONFIGURED == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -88,7 +92,7 @@ jobs:
       # 収集そのものが落ちた場合も知らせる。
       # 気づかないまま止まっているのが最も危険な状態のため。
       - name: 実行失敗の通知
-        if: failure() && secrets.MAIL_USERNAME != ''
+        if: failure() && env.MAIL_CONFIGURED == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
