@@ -24,6 +24,32 @@ npm run watch:local
 npm run watch
 ```
 
+## この環境での注意
+
+Windows の PowerShell は既定でスクリプトの実行を禁止しているため、`npm run ○○` が
+「スクリプトの実行が無効になっているため」というエラーで止まる。
+設定を変える必要はなく、`node` で直接呼べば動く。
+
+| 使いたいもの | 実際に打つコマンド |
+|---|---|
+| `npm run watch:dry` | `node src/main.js --dry-run --force` |
+| `npm run watch:local` | `node src/main.js --no-publish --force` |
+| `npm run preview` | `node src/tools/preview.js 3` |
+| `npm run check:blog` | `node src/tools/check-blog.js` |
+| `npm run get-token` | `node src/tools/get-refresh-token.js` |
+
+## 動いているか確認する
+
+実行ログを開かなくても、次のファイルを見れば状況が分かる。
+
+| ファイル | 分かること |
+|---|---|
+| `state/diagnostics.json` | 直近の実行結果（収集件数・投稿件数・認証情報の登録状況） |
+| `state/notify.md` | 確認が必要な項目。空なら問題なし |
+| `state/health.json` | 監視先ごとの取得の成否と連続失敗回数 |
+| `state/mode.json` | 平常モードか荒天モードか |
+| `state/events.jsonl` | これまでに検出した全イベントの台帳 |
+
 ## 初期設定
 
 ### 1. Blogger の準備
