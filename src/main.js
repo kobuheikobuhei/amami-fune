@@ -14,7 +14,7 @@ import { watchWeather, decideMode, shouldRun } from './watchers/weather.js';
 import {
   readSnapshot, writeSnapshot, readEvents, latestEventsByKey, appendEvent,
   readHealth, writeHealth, recordSuccess, recordFailure,
-  readMode, writeMode, readPageIds, writePageIds, writeNotification,
+  readMode, writeMode, readPageIds, writePageIds, writeNotification, writeDiagnostics,
 } from './lib/state.js';
 import { toCandidates, diffAgainstLedger, publishDecision } from './curator.js';
 import { buildArticle } from './writer.js';
@@ -44,10 +44,12 @@ async function main() {
 
   // 値そのものは出さず、長さだけを記録する。
   // 手元と実行環境で認証情報が食い違っていないかを突き合わせるため。
-  const credLengths = ['BLOGGER_BLOG_ID', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN']
-    .map((k) => k + '=' + ((process.env[k] ?? '').trim().length))
-    .join(' ');
-  log('認証情報の長さ: ' + credLengths);
+  const credentialLengths = Object.fromEntries(
+    ['BLOGGER_BLOG_ID', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN']
+      .map((k) => [k, (process.env[k] ?? '').trim().length])
+  );
+  log('認証情報の長さ: ' + JSON.stringify(credentialLengths));
+  const diagnostics = { at: now, credential_lengths: credentialLengths };
 
   const prevMode = readMode();
   let mode = prevMode;
@@ -184,6 +186,18 @@ async function main() {
   }
 
   if (!DRY_RUN) {
+    diagnostics.result = {
+      mode: mode.mode,
+      sources: targets.length,
+      observations: observations.length,
+      candidates: candidates.length,
+      created: created.length,
+      updated: updated.length,
+      seeded: seeded.length,
+      status_pages: Object.keys(pageIds).length,
+      notifications: notify.length,
+    };
+    writeDiagnostics(diagnostics);
     for (const a of [...created, ...updated, ...seeded]) appendEvent(a.event);
     writeHealth(health);
     writeMode(mode);
