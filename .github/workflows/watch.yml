@@ -52,7 +52,8 @@ jobs:
         run: |
           git config user.name  "amami-fune-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add state/
+          mkdir -p state
+          git add -A state/
           if git diff --staged --quiet; then
             echo "状態に変化なし"
           else
@@ -71,7 +72,7 @@ jobs:
           fi
 
       - name: メール通知
-        if: steps.notify.outputs.send == 'true'
+        if: steps.notify.outputs.send == 'true' && secrets.MAIL_USERNAME != ''
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -87,7 +88,7 @@ jobs:
       # 収集そのものが落ちた場合も知らせる。
       # 気づかないまま止まっているのが最も危険な状態のため。
       - name: 実行失敗の通知
-        if: failure()
+        if: failure() && secrets.MAIL_USERNAME != ''
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
