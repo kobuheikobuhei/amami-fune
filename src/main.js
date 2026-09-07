@@ -19,6 +19,8 @@ import {
 import { toCandidates, diffAgainstLedger, publishDecision } from './curator.js';
 import { buildArticle } from './writer.js';
 import { buildStatusPage } from './statuspage.js';
+import { watchTyphoon } from './watchers/typhoon.js';
+import { buildTyphoonPage } from './typhoonpage.js';
 import { BloggerPublisher, readCredentials } from './publisher.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -62,9 +64,10 @@ async function main() {
   const prevMode = readMode();
   let mode = prevMode;
   const weatherSource = cfg.sources.find((s) => s.id === 'jma-warning-amami');
+  let weatherResult = null;
   try {
-    const weather = await watchWeather(weatherSource, { userAgent: cfg.userAgent });
-    mode = decideMode(prevMode, weather, now);
+    weatherResult = await watchWeather(weatherSource, { userAgent: cfg.userAgent });
+    mode = decideMode(prevMode, weatherResult, now);
     log('モード: ' + mode.mode + '（' + mode.reason + '）');
   } catch (err) {
     log('気象情報の取得に失敗: ' + err.message + ' — 前回のモードを維持します');
@@ -95,6 +98,7 @@ async function main() {
       observations.push(...r.observations);
       recordSuccess(health, source.id, r.fetchedAt);
       log('  ok   ' + source.id + '  記事' + r.observations.length + '件' + (firstRun ? ' [初回：記録のみ]' : ''));
+
       if (!DRY_RUN) {
         writeSnapshot(source.id, {
           fetched_at: r.fetchedAt,
@@ -194,6 +198,27 @@ async function main() {
     }
   }
 
+  // 台風特設ページ。台風が無いときも「発生していない」と示すため常に更新する。
+  try {
+    const { typhoons } = await watchTyphoon({ userAgent: cfg.userAgent });
+    const eventsByRoute = {};
+    for (const e of merged.values()) {
+      (eventsByRoute[e.route_id] ??= []).push(e);
+    }
+    const typhoonPage = buildTyphoonPage({
+      typhoons,
+      weather: weatherResult,
+      routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
+      eventsByRoute,
+      now,
+    });
+    const r = await publisher.upsertPage(pageIds.__typhoon ?? null, typhoonPage);
+    pageIds.__typhoon = r.id;
+    log('  台風ページ更新: 発生中 ' + typhoons.length + '件');
+  } catch (err) {
+    log('  台風ページの更新に失敗: ' + err.message);
+    notify.push('- 台風ページの更新に失敗: ' + err.message);
+  }
   if (!DRY_RUN) {
     diagnostics.result = {
       mode: mode.mode,
