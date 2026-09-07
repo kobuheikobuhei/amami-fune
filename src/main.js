@@ -65,9 +65,16 @@ async function main() {
   let mode = prevMode;
   const weatherSource = cfg.sources.find((s) => s.id === 'jma-warning-amami');
   let weatherResult = null;
+  // 台風はモードの判定にも使うため、収集より先に取得する。
+  let typhoonResult = { typhoons: [] };
+  try {
+    typhoonResult = await watchTyphoon({ userAgent: cfg.userAgent });
+  } catch (err) {
+    log('台風情報の取得に失敗: ' + err.message);
+  }
   try {
     weatherResult = await watchWeather(weatherSource, { userAgent: cfg.userAgent });
-    mode = decideMode(prevMode, weatherResult, now);
+    mode = decideMode(prevMode, weatherResult, typhoonResult.typhoons, now);
     log('モード: ' + mode.mode + '（' + mode.reason + '）');
   } catch (err) {
     log('気象情報の取得に失敗: ' + err.message + ' — 前回のモードを維持します');
@@ -200,7 +207,7 @@ async function main() {
 
   // 台風特設ページ。台風が無いときも「発生していない」と示すため常に更新する。
   try {
-    const { typhoons } = await watchTyphoon({ userAgent: cfg.userAgent });
+    const typhoons = typhoonResult.typhoons;
     const eventsByRoute = {};
     for (const e of merged.values()) {
       (eventsByRoute[e.route_id] ??= []).push(e);

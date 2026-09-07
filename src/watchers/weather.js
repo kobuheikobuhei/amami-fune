@@ -6,6 +6,7 @@
 // 構造になっており、範囲で判定すれば個別コードの解釈違いで誤判定しない。
 
 import { fetchText } from '../lib/fetcher.js';
+import { NAZE } from './typhoon.js';
 
 // 奄美大島とその周辺（喜界島を含む）。仕様Q6の対象範囲に対応する。
 export const AMAMI_AREA_CODES = new Set([
@@ -54,17 +55,33 @@ export async function watchWeather(source, { userAgent }) {
 // 荒天モードは、警報が解除されてもすぐには戻さない。
 // 警報解除の直後は欠航の判断や振替便の発表が続くため、
 // 仕様 §2.2 に従い解除から6時間は荒天モードを維持する。
+// 台風・熱帯低気圧がこの距離まで近づいたら荒天モードとする。
+// 中心が離れていてもうねりは先に届くため、警報より早く動き出せるようにする。
+const NEAR_KM = 600;
+
 const COOLDOWN_HOURS = 6;
 
-export function decideMode(previous, weather, now) {
+export function decideMode(previous, weather, typhoons, now) {
   const nowMs = new Date(now).getTime();
 
-  if (weather.rough) {
+  // 警報が出る前から台風は近づいてくる。
+  // 接近段階こそ台風情報も運航の発表も動くため、距離でも荒天モードへ上げる。
+  const near = (typhoons ?? []).filter(
+    (t) => t.distanceKm !== null && t.distanceKm <= NEAR_KM
+  );
+  const rough = weather.rough || near.length > 0;
+  const reason = weather.rough
+    ? '奄美地方に警報が発表中（' + weather.activeWarnings.length + '件）'
+    : near.length
+      ? near[0].category + 'が' + NAZE.name + 'から約' + near[0].distanceKm + 'kmに接近'
+      : null;
+
+  if (rough) {
     return {
       mode: 'rough',
       since: previous.mode === 'rough' ? previous.since ?? now : now,
       rough_last_seen: now,
-      reason: `奄美地方に警報が発表中（${weather.activeWarnings.length}件）`,
+      reason,
       last_run: now,
     };
   }
