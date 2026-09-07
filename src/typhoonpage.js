@@ -10,7 +10,6 @@
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { NAZE } from './watchers/typhoon.js';
-import { buildTrackSvg } from './trackmap.js';
 
 const DISCLAIMER =
   '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
@@ -94,15 +93,7 @@ function trackSection(nearest, routePorts) {
     '&zoom=5&level=surface&overlay=wind&menu=&message=&marker=&calendar=now' +
     '&pressure=&type=map&location=coordinates&detail=&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
 
-  const svg = nearest ? buildTrackSvg({ typhoon: nearest, routePorts, track: nearest.track || [] }) : '';
-
-  const map = svg
-    ? '<h3>進路と航路（当サイト作成）</h3>' + svg +
-      '<p style="font-size:0.85em;color:#666">気象庁が発表する座標をもとに当サイトが作図した概略図です。' +
-      '公式の進路図ではありません。予報円は表示していません。正確な情報は気象庁の進路図をご確認ください。</p>'
-    : '';
-
-  return '<h2>進路予想</h2>' + map +
+  return '<h2>進路予想</h2>' +
     '<ul>' +
     '<li><a href="https://www.jma.go.jp/bosai/map.html#contents=typhoon" target="_blank" rel="noopener">気象庁　台風情報</a>（日本の公式発表）</li>' +
     '<li><a href="https://www.metoc.navy.mil/jtwc/jtwc.html" target="_blank" rel="noopener">米海軍 合同台風警報センター（JTWC）</a>（英語）</li>' +
