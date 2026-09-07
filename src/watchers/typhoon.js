@@ -81,8 +81,13 @@ export async function watchTyphoon({ userAgent }) {
 
     // 予報は台風に発達してから出る。無い場合もある。
     let forecasts = [];
+    let track = [];
     try {
       const fc = await fetchJson(`${BASE}/${id}/forecast.json`, userAgent);
+      // 実況の part にこれまでの経路が入っている。進路図を描くのに使う。
+      const analysis = (fc ?? []).find((p) => (typeof p.part === 'string' ? p.part : p.part?.jp) === '実況');
+      const tk = analysis?.track ?? {};
+      track = [...(tk.preTyphoon ?? []), ...(tk.typhoon ?? [])];
       forecasts = (fc ?? [])
         .filter((p) => p.advancedHours > 0)
         .map((p) => {
@@ -102,6 +107,7 @@ export async function watchTyphoon({ userAgent }) {
         });
     } catch {
       forecasts = [];
+      track = [];
     }
 
     typhoons.push({
@@ -124,6 +130,7 @@ export async function watchTyphoon({ userAgent }) {
       issuedAt: title.issue?.JST ?? null,
       validAt: now.validtime?.JST ?? null,
       forecasts,
+      track,
     });
   }
 

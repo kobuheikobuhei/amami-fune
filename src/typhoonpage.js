@@ -10,6 +10,7 @@
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { NAZE } from './watchers/typhoon.js';
+import { buildTrackSvg } from './trackmap.js';
 
 const DISCLAIMER =
   '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
@@ -84,7 +85,8 @@ function typhoonBlock(t) {
 }
 
 /** 進路予想図へのリンクと、強度の定義の違いの説明 */
-function trackSection(center) {
+function trackSection(nearest, routePorts) {
+  const center = nearest ? nearest.position : null;
   const lat = center && center.lat ? center.lat : NAZE.lat;
   const lon = center && center.lon ? center.lon : NAZE.lon;
   const windy = 'https://embed.windy.com/embed2.html?lat=' + NAZE.lat + '&lon=' + NAZE.lon +
@@ -92,7 +94,15 @@ function trackSection(center) {
     '&zoom=5&level=surface&overlay=wind&menu=&message=&marker=&calendar=now' +
     '&pressure=&type=map&location=coordinates&detail=&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
 
-  return '<h2>進路予想</h2>' +
+  const svg = nearest ? buildTrackSvg({ typhoon: nearest, routePorts, track: nearest.track || [] }) : '';
+
+  const map = svg
+    ? '<h3>進路と航路（当サイト作成）</h3>' + svg +
+      '<p style="font-size:0.85em;color:#666">気象庁が発表する座標をもとに当サイトが作図した概略図です。' +
+      '公式の進路図ではありません。予報円は表示していません。正確な情報は気象庁の進路図をご確認ください。</p>'
+    : '';
+
+  return '<h2>進路予想</h2>' + map +
     '<ul>' +
     '<li><a href="https://www.jma.go.jp/bosai/map.html#contents=typhoon" target="_blank" rel="noopener">気象庁　台風情報</a>（日本の公式発表）</li>' +
     '<li><a href="https://www.metoc.navy.mil/jtwc/jtwc.html" target="_blank" rel="noopener">米海軍 合同台風警報センター（JTWC）</a>（英語）</li>' +
@@ -103,6 +113,19 @@ function trackSection(center) {
     'frameborder="0" loading="lazy" title="Windy 風の状況"></iframe>' +
     '</div>' +
     '<p style="font-size:0.85em;color:#666">提供: <a href="https://www.windy.com" target="_blank" rel="noopener">Windy.com</a></p>' +
+    '<h3>米海軍（JTWC）の進路図の見方</h3>' +
+    '<p>JTWCのページは英語で、進路図にたどり着くまでに数手かかります。手順は次のとおりです。</p>' +
+    '<ol>' +
+    '<li>上のJTWCのリンクを開きます</li>' +
+    '<li>地図の中の <strong>Western Pacific</strong>（西太平洋）の区域を選びます。日本付近の台風はここに入ります</li>' +
+    '<li>台風の一覧から、該当する番号を選びます。番号は <strong>WP</strong> で始まります（例: WP2625）。' +
+      '気象庁の「台風第24号」とは番号の付け方が違うため、名前（Krovanh など）で照合すると確実です</li>' +
+    '<li><strong>TC Warning Graphic</strong> をクリックすると進路図が開きます</li>' +
+    '</ol>' +
+    '<p><strong>時刻は日本時間ではありません。</strong>JTWCの表示は世界標準時（UTC、末尾にZが付きます）です。' +
+      '<strong>日本時間はこれに9時間を足します</strong>。' +
+      '例えば「061800Z」は6日18時UTCで、日本時間では7日午前3時です。' +
+      '9時間前の情報を見ていることになるため、直近の状況は気象庁の発表で確認してください。</p>' +
     '<h3>気象庁と米海軍で数値が違う理由</h3>' +
     '<p>同じ台風でも、気象庁より米海軍（JTWC）の方が強い数値になることがあります。' +
     'これは観測の誤りではなく、<strong>風速の測り方が違う</strong>ためです。</p>' +
@@ -156,6 +179,7 @@ function operationSection(routes, eventsByRoute, today) {
 
 export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, now }) {
   const today = new Date(now).toISOString().slice(0, 10);
+  const routePorts = routes && routes.length ? (routes[0].ports || []) : [];
   const active = typhoons || [];
   const withDistance = active.filter(function (t) { return t.distanceKm !== null; });
   withDistance.sort(function (a, b) { return a.distanceKm - b.distanceKm; });
@@ -171,7 +195,7 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, now
       '<p style="color:#555;font-size:0.9em">最終更新: ' + jst(now) + '</p>' +
       '<h2>発生中の台風・熱帯低気圧</h2>' +
       head +
-      trackSection(nearest ? nearest.position : null) +
+      trackSection(nearest, routePorts) +
       warningSection(weather) +
       operationSection(routes, eventsByRoute, today) +
       '<hr>' +
