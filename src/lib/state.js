@@ -141,5 +141,8 @@ export function writeDiagnostics(data) {
 
 export function writeNotification(lines) {
   ensureDir(NOTIFY_PATH);
-  writeFileSync(NOTIFY_PATH, lines.join('\n') + '\n', 'utf8');
+  // 通知が無いときは完全な空ファイルにする。
+  // 改行だけでも「中身がある」と判定され、空のメールが送られてしまうため。
+  const body = lines.length ? lines.join(String.fromCharCode(10)) + String.fromCharCode(10) : '';
+  writeFileSync(NOTIFY_PATH, body, 'utf8');
 }

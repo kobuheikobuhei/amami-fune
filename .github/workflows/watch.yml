@@ -79,7 +79,7 @@ jobs:
       - name: 通知の要否を判定
         id: notify
         run: |
-          if [ -s state/notify.md ]; then
+          if [ -s state/notify.md ] && [ -n "$(tr -d '[:space:]' < state/notify.md)" ]; then
             echo "send=true" >> "$GITHUB_OUTPUT"
           else
             echo "send=false" >> "$GITHUB_OUTPUT"
