@@ -29,11 +29,11 @@ jobs:
     env:
       MAIL_CONFIGURED: ${{ secrets.MAIL_USERNAME != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: 依存関係のインストール
         run: npm install --no-audit --no-fund
