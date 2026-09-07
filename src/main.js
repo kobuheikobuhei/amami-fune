@@ -41,6 +41,9 @@ async function main() {
   const routeIds = activeRouteIds(cfg.routes, PHASE);
   const routeById = Object.fromEntries(cfg.routes.map((r) => [r.id, r]));
   const notify = [];
+  if (process.env.TEST_NOTIFY === 'true') {
+    notify.push('- これはメール通知の動作確認です。この文面が届いていれば通知は正しく設定されています。');
+  }
 
   // 値そのものは出さず、長さだけを記録する。
   // 手元と実行環境で認証情報が食い違っていないかを突き合わせるため。
@@ -50,6 +53,11 @@ async function main() {
   );
   log('認証情報の長さ: ' + JSON.stringify(credentialLengths));
   const diagnostics = { at: now, credential_lengths: credentialLengths };
+  // メール通知の設定状況。値は持たず、登録の有無と長さだけを見る。
+  diagnostics.mail_lengths = Object.fromEntries(
+    ['MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_TO']
+      .map((k) => [k, (process.env[k] ?? '').trim().length])
+  );
 
   const prevMode = readMode();
   let mode = prevMode;

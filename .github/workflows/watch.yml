@@ -12,6 +12,10 @@ on:
         description: '平常モードの間引きを無視して実行する'
         type: boolean
         default: false
+      test_notify:
+        description: 'メール通知の動作確認（テスト通知を1件送る）'
+        type: boolean
+        default: false
 
 concurrency:
   group: watch
@@ -28,6 +32,7 @@ jobs:
     # メール通知が未設定のときに通知手順を飛ばせるよう、ここで環境変数へ移す。
     env:
       MAIL_CONFIGURED: ${{ secrets.MAIL_USERNAME != '' }}
+
     steps:
       - uses: actions/checkout@v5
 
@@ -47,6 +52,11 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
           PHASE: ${{ vars.PHASE || '1' }}
+          TEST_NOTIFY: ${{ inputs.test_notify }}
+          # 値そのものは使わない。登録の有無と長さを診断に残すためだけに渡す。
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
         run: node src/main.js ${{ inputs.force && '--force' || '' }}
 
       # state/ は実行間で引き継ぐ必要がある。
