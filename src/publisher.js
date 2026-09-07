@@ -138,6 +138,16 @@ export class BloggerPublisher {
     return { id: updated.id, url: updated.url ?? null };
   }
 
+  /** 下書きを公開する。方針を変えたときに既存の下書きを出すために使う */
+  async publishDraft(postId) {
+    if (this.dryRun) return { id: postId, dryRun: true };
+    await this.auth();
+    const r = await api(this.token, `/blogs/${this.credentials.blogId}/posts/${postId}/publish`, {
+      method: 'POST',
+    });
+    return { id: r.id, url: r.url ?? null };
+  }
+
   /** 投稿を削除する。試験投稿の後始末と、誤投稿の撤回に使う */
   async deletePost(postId) {
     if (this.dryRun) return { deleted: postId, dryRun: true };

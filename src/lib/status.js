@@ -31,7 +31,16 @@ export const STATUS_COLOR = {
 };
 
 /** 自動公開してよい状態（仕様Q28） */
-export const AUTO_PUBLISHABLE = new Set([STATUS.CANCELLED, STATUS.EXTRA, STATUS.RESUMED]);
+// 自動公開してよい状態（仕様Q28）。
+// 条件付き運航は「こちらの推測」ではなく「会社の公式発表」であり、
+// どの港が条件付きかまで明示されている確定情報のため自動公開する。
+// 運航可否未定は、発表そのものに中身が乏しく短時間で覆るため下書きに留める。
+export const AUTO_PUBLISHABLE = new Set([
+  STATUS.CANCELLED,
+  STATUS.EXTRA,
+  STATUS.RESUMED,
+  STATUS.CONDITIONAL,
+]);
 
 /** 記事にしない状態 */
 export const NOT_ARTICLE = new Set([STATUS.NORMAL, STATUS.UNKNOWN]);
