@@ -7,6 +7,7 @@
 // 取得失敗中は赤字で明示し、公式サイトへの導線を前面に出す。
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
+import { jstDate } from './lib/text.js';
 
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 
@@ -78,7 +79,7 @@ function noticeSection(notices) {
 }
 
 export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], notices = [], now, failThreshold = 2 }) {
-  const today = new Date(now).toISOString().slice(0, 10);
+  const today = jstDate(now);
 
   // 今日以降の便のみ。過去の欠航を現在の状態として見せない。
   // 期間の便は、終わりの日が今日以降なら「進行中」として残す。

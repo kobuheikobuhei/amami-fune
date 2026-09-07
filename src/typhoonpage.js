@@ -9,6 +9,7 @@
 // 進路の予想は載せるが、そこから欠航を推測して書くことはしない（仕様Q28）。
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
+import { jstDate } from './lib/text.js';
 import { NAZE } from './watchers/typhoon.js';
 
 const DISCLAIMER =
@@ -175,7 +176,7 @@ function operationSection(routes, eventsByRoute, noticesByRoute, today) {
 }
 
 export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, now }) {
-  const today = new Date(now).toISOString().slice(0, 10);
+  const today = jstDate(now);
   const routePorts = routes && routes.length ? (routes[0].ports || []) : [];
   const active = typhoons || [];
   const withDistance = active.filter(function (t) { return t.distanceKm !== null; });

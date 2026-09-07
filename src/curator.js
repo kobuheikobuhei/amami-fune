@@ -6,6 +6,7 @@
 //   3. 初回実行時に過去の記事をまとめて投稿しない
 
 import { AUTO_PUBLISHABLE, NOT_ARTICLE } from './lib/status.js';
+import { jstDate } from './lib/text.js';
 
 // 発表日時の古さでは足切りしない。
 // A"LINE は既存の記事を書き換えて新しい便の案内を載せるが、
@@ -14,12 +15,20 @@ import { AUTO_PUBLISHABLE, NOT_ARTICLE } from './lib/status.js';
 // 古い情報を掘り起こさないための歯止めは、運航日そのもので判断する。
 
 /** 便を一意に識別する鍵。状態はここに含めない（状態は時間とともに変わるため） */
+/**
+ * 便を一意に識別する鍵。状態はここに含めない（状態は時間とともに変わるため）。
+ *
+ * ただし臨時便は定期便とは別の便なので分ける。
+ * 「9月7日の上り便が欠航」と「同じ日に上り臨時便を出す」は同時に成り立つ事実であり、
+ * 同じ便として扱うと片方が消えてしまう。
+ */
 export function eventKey(entry, routeId) {
   const period =
     entry.service_date_end && entry.service_date_end !== entry.service_date
       ? entry.service_date + '_' + entry.service_date_end
       : entry.service_date;
-  return [routeId, period, entry.origin ?? '-', entry.direction ?? '-'].join('|');
+  const kind = /臨時/.test(entry.detail ?? '') || /臨時/.test(entry.line ?? '') ? 'rinji' : 'teiki';
+  return [routeId, period, entry.origin ?? '-', entry.direction ?? '-', kind].join('|');
 }
 
 function daysBetween(a, b) {
@@ -118,6 +127,17 @@ export function diffAgainstLedger(candidates, ledger, { seedOnlySources = new Se
       continue;
     }
 
+    // 台帳にはあるが記事が無いものは、投稿に失敗したまま取り残されている。
+    // 放置すると二度と投稿されないため、次の実行で作り直す。
+    if (!prev.published_post) {
+      actions.push({
+        type: seeding ? 'seed' : 'create',
+        candidate: c,
+        event: { ...prev, ...c, revisions: prev.revisions ?? [] },
+      });
+      continue;
+    }
+
     const statusChanged = prev.status !== c.status;
     const sourceChanged = prev.source_url !== c.source_url;
     const newer = new Date(c.published_at) > new Date(prev.published_at ?? 0);
@@ -166,16 +186,39 @@ export function publishDecision(event) {
  * 公式のフィードに今も載っていて、かつ今日以降の便を持たない案内を
  * 「継続中」として扱う。
  */
+// 終わりを定めずに続く状態を示す言い回し。
+// 「当面の間」「復旧まで」のように、いつ戻るか決まっていない案内を見分ける。
+const OPEN_ENDED = /当面|当分|復旧|再開まで|別途|未定|見込み|しばらく/;
+
+/**
+ * 継続中のお知らせを取り出す。
+ *
+ * 「機関故障により当面の間運休」のような案内は、開始日が過去のため
+ * 便ごとのイベントとしては足切りされて消える。しかし公式が今も掲載している以上、
+ * それは現在も続いている状態であり、読者にとっては個別の欠航より影響が大きい。
+ *
+ * ただし「9月3日の便が欠航」のような、日付が過ぎて終わった案内まで
+ * 継続中として見せてはならない。古い情報を現在の状態として示すことになる。
+ *
+ * そこで、今日以降の便を持たない案内のうち、
+ *   ・そもそも日付を伴わない（体制の変更など）
+ *   ・終わりを定めない言い回しを含む（当面の間、復旧まで）
+ * のいずれかに当てはまるものだけを継続中として扱う。
+ */
 export function ongoingNotices(observations, { now }) {
-  const today = new Date(now).toISOString().slice(0, 10);
+  const today = jstDate(now);
   const notices = [];
 
   for (const obs of observations) {
     if (!obs.status || NOT_ARTICLE.has(obs.status)) continue;
-    const hasFuture = (obs.entries ?? []).some(
-      (e) => (e.service_date_end ?? e.service_date) >= today
-    );
+
+    const entries = obs.entries ?? [];
+    const hasFuture = entries.some((e) => (e.service_date_end ?? e.service_date) >= today);
     if (hasFuture) continue;
+
+    const openEnded = OPEN_ENDED.test(obs.summary ?? "") || OPEN_ENDED.test(obs.title ?? "");
+    const undated = entries.length === 0;
+    if (!openEnded && !undated) continue; // 日付が過ぎて終わった案内
 
     notices.push({
       route_id: obs.route_id,
@@ -184,7 +227,7 @@ export function ongoingNotices(observations, { now }) {
       detail: obs.detail,
       title: obs.title,
       source_url: obs.link,
-      since: (obs.entries ?? [])[0]?.service_date ?? null,
+      since: entries[0]?.service_date ?? null,
       published_at: obs.published_at,
     });
   }

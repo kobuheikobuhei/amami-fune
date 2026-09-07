@@ -226,3 +226,14 @@ export function extractPortNotes(text) {
   }
   return notes;
 }
+
+
+/**
+ * 日本時間での日付（YYYY-MM-DD）。
+ * 運航日はすべて日本時間で発表されるため、世界標準時で判定すると
+ * 日本の朝0時から9時の間だけ前日として扱われてしまう。
+ * 欠航の発表が最も集中する早朝に日付がずれるため、ここを揃える。
+ */
+export function jstDate(iso) {
+  return new Date(new Date(iso).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
