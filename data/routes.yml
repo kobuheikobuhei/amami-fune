@@ -1,0 +1,124 @@
+# 航路・船社・船名マスタ
+# 更新: 2026-09-04
+#
+# enabled: false にすると、その航路の収集・掲載を即座に停止できる（仕様Q36）
+# phase:   1 = MVP対象 / 2 = フェーズ2 / 3 = フェーズ3
+# verified: 公式サイトで寄港地・船名を確認済みか。false のものは実装時に要確認
+
+version: 1
+updated: 2026-09-04
+
+operators:
+  marue:
+    name: マルエーフェリー株式会社
+    site: https://www.aline-ferry.com/kagoshima/
+    note: 奄美海運と共通のサイト（A"LINE）で運航状況を配信
+
+  marix:
+    name: マリックスライン株式会社
+    site: https://marixline.com/
+
+  amamikaiun:
+    name: 奄美海運株式会社
+    site: https://www.aline-ferry.com/amami/
+    note: マルエーフェリーと共通サイト
+
+  setouchi:
+    name: 瀬戸内町（町営定期船）
+    site: https://www.town.setouchi.lg.jp/cho/kurashi/kotsu/senpaku/index.html
+    note: 運航状況は公式サイトに掲載されず、X と防災情報メールでのみ配信される
+
+  kyodogumi:
+    name: 共同組海運株式会社
+    site: https://www.kyoudougumikaiun.co.jp/
+    note: 貨物船（RORO）。ホームページに「船舶動静」欄がある
+
+routes:
+  - id: marue-main
+    name: 鹿児島〜奄美〜沖縄（マルエーフェリー）
+    operator_id: marue
+    enabled: true
+    phase: 1
+    verified: true
+    ships: [フェリーあけぼの, フェリー波之上]
+    ports: [鹿児島, 名瀬, 亀徳, 和泊, 与論, 本部, 那覇]
+    amami_ports: [名瀬]
+
+  - id: marix-main
+    name: 鹿児島〜奄美〜沖縄（マリックスライン）
+    operator_id: marix
+    enabled: true
+    phase: 1
+    verified: true
+    ships: [クイーンコーラルクロス, クイーンコーラルプラス]
+    ports: [鹿児島, 名瀬, 亀徳, 和泊, 与論, 本部, 那覇]
+    amami_ports: [名瀬]
+
+  - id: amamikaiun-kikai
+    name: 鹿児島〜喜界〜名瀬〜古仁屋〜平土野〜知名（奄美海運）
+    operator_id: amamikaiun
+    enabled: true
+    phase: 1
+    verified: true
+    ships: [フェリーきかい, フェリーあまみ]
+    ports: [鹿児島, 喜界, 名瀬, 古仁屋, 平土野, 知名]
+    amami_ports: [名瀬, 古仁屋]
+    notes: |
+      フェリーあまみは 2026-05-16 の機関故障により運休中（2026-09-04 時点）。
+      フェリーきかいが週3便体制（鹿児島発 月・水・金／平土野発 火・木・土）で代替運航。
+      運休・代替の状態は常設ページに明示すること。
+
+  - id: setouchi-kakeroma
+    name: 古仁屋〜加計呂麻島（フェリーかけろま）
+    operator_id: setouchi
+    enabled: true
+    phase: 2
+    verified: false
+    ships: [フェリーかけろま]
+    ports: [古仁屋, 生間, 瀬相]
+    amami_ports: [古仁屋]
+    notes: 寄港地名は公式時刻表で要確認
+
+  - id: setouchi-setonami
+    name: 古仁屋〜請島〜与路島（せとなみ）
+    operator_id: setouchi
+    enabled: true
+    phase: 2
+    verified: false
+    ships: [せとなみ]
+    ports: [古仁屋, 請阿室, 池地, 与路]
+    amami_ports: [古仁屋]
+    notes: 寄港地名は公式時刻表で要確認
+
+  - id: kyodogumi-a
+    name: 共同組海運 Aコース（鹿児島〜名瀬〜徳之島〜喜界島）
+    operator_id: kyodogumi
+    enabled: true
+    phase: 2
+    verified: true
+    ships: [みさきⅡ, つばさ]
+    ports: [鹿児島, 名瀬, 徳之島, 喜界島]
+    amami_ports: [名瀬]
+    cargo_only: true
+
+  - id: kyodogumi-b
+    name: 共同組海運 Bコース（鹿児島〜名瀬〜徳之島〜沖永良部）
+    operator_id: kyodogumi
+    enabled: true
+    phase: 2
+    verified: true
+    ships: [みさきⅡ, つばさ]
+    ports: [鹿児島, 名瀬, 徳之島, 沖永良部]
+    amami_ports: [名瀬]
+    cargo_only: true
+
+  - id: cruise-naze
+    name: 名瀬港 クルーズ船寄港
+    operator_id: null
+    enabled: true
+    phase: 3
+    verified: true
+    ships: []
+    ports: [名瀬]
+    amami_ports: [名瀬]
+    notes: 速報ではなく週次・月次の予定まとめとして扱う（仕様Q8）

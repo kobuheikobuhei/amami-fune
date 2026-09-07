@@ -1,0 +1,103 @@
+name: 船舶動静の監視
+
+# 30分ごとに起動する。
+# 平常モードでは実処理を1時間に1回へ間引き、荒天モードでは毎回実行する（仕様 §2.2）。
+# GitHub Actions の cron は数分〜十数分遅延することがあるが、この粒度では実害はない。
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '平常モードの間引きを無視して実行する'
+        type: boolean
+        default: false
+
+concurrency:
+  group: watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 依存関係のインストール
+        run: npm install --no-audit --no-fund
+
+      - name: 収集と公開
+        env:
+          BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          PHASE: ${{ vars.PHASE || '1' }}
+        run: node src/main.js ${{ inputs.force && '--force' || '' }}
+
+      # state/ は実行間で引き継ぐ必要がある。
+      # ここに台帳・スナップショット・モードが入っており、
+      # コミットし損ねると同じ欠航を二度投稿することになる。
+      - name: 状態の保存
+        run: |
+          git config user.name  "amami-fune-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state/
+          if git diff --staged --quiet; then
+            echo "状態に変化なし"
+          else
+            git commit -m "state: $(date -u +%Y-%m-%dT%H:%MZ) の収集結果"
+            git pull --rebase --autostash
+            git push
+          fi
+
+      - name: 通知の要否を判定
+        id: notify
+        run: |
+          if [ -s state/notify.md ]; then
+            echo "send=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "send=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: メール通知
+        if: steps.notify.outputs.send == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: 船舶動静ボット
+          to: ${{ secrets.MAIL_TO }}
+          subject: '[船舶動静] 確認が必要な項目があります'
+          body: file://state/notify.md
+
+      # 収集そのものが落ちた場合も知らせる。
+      # 気づかないまま止まっているのが最も危険な状態のため。
+      - name: 実行失敗の通知
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: 船舶動静ボット
+          to: ${{ secrets.MAIL_TO }}
+          subject: '[船舶動静] 監視ジョブが失敗しました'
+          body: |
+            監視ジョブが異常終了しました。
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

@@ -1,0 +1,216 @@
+# 監視先マスタ
+# 更新: 2026-09-04
+#
+# 電話番号は一切保持しない（仕様の追加確定事項）
+# role:       primary=主監視先 / backup=予備 / trigger=早期検知のみ / reference=表示用リンク
+# confidence: A=公式明記（自動公開可） / B=要判断（下書き止まり） / -=公開の根拠にしない
+# verified:   このURLで実際に取得できることを確認した日
+# robots:     robots.txt の確認結果
+
+version: 1
+updated: 2026-09-04
+
+user_agent: "AmamiFuneBot/1.0 (+<サイトURL>; contact: <連絡用メール>)"
+
+sources:
+
+  # ── マルエーフェリー（鹿児島航路）──────────────────────
+  - id: aline-kagoshima-rss
+    operator_id: marue
+    route_ids: [marue-main]
+    type: rss
+    url: https://www.aline-ferry.com/status/status-route/route-kagoshima/feed/
+    role: primary
+    confidence: A
+    verified: 2026-09-04
+    robots: allow            # Disallow は /cms/wp-admin/ のみ
+    notes: |
+      WordPress の運航状況カテゴリのRSS。取得確認済み。
+      記事URLは /status/route-kagoshima/<船名スラッグ>/<ID>/ の形式で、
+      URLから船を特定できる（ferry-akebono / ferry-naminoue）。
+      タイトル例: 「欠航案内」「ドック入りのご案内」「フェリーあけぼの/通常運航」
+      本文に便の日付・区間が入るため、状態判定は本文のパースが必要。
+
+  - id: aline-kagoshima-html
+    operator_id: marue
+    route_ids: [marue-main]
+    type: html
+    url: https://www.aline-ferry.com/status/status-route/route-kagoshima/
+    role: backup
+    confidence: A
+    verified: 2026-09-04
+    robots: allow
+
+  # ── 奄美海運（鹿児島〜喜界〜知名航路）──────────────────
+  - id: aline-amami-rss
+    operator_id: amamikaiun
+    route_ids: [amamikaiun-kikai]
+    type: rss
+    url: https://www.aline-ferry.com/status/status-route/route-amami/feed/
+    role: primary
+    confidence: A
+    verified: 2026-09-04
+    robots: allow
+    notes: |
+      記事URLは /status/route-amami/<船名スラッグ>/<ID>/（ferry-kikai / ferry-amami）。
+      船別フィードも存在する:
+        /status/status-route/route-amami/ferry-kikai/feed/
+        /status/status-route/route-amami/ferry-amami/feed/
+
+  - id: aline-amami-html
+    operator_id: amamikaiun
+    route_ids: [amamikaiun-kikai]
+    type: html
+    url: https://www.aline-ferry.com/status/status-route/route-amami/
+    role: backup
+    confidence: A
+    verified: 2026-09-04
+    robots: allow
+
+  - id: aline-bbs
+    operator_id: marue
+    route_ids: [marue-main, amamikaiun-kikai]
+    type: html
+    url: http://asp2.mg21.jp/webtool/filebbs/default.asp?bbsid=a-line
+    role: backup
+    confidence: B
+    verified: false
+    robots: unverified
+    notes: |
+      「運航状況（船舶動静）鹿児島航路」のBBS形式ページ。
+      RSSが安定して取れているため優先度は低い。RSSが壊れた場合の代替候補として保持。
+      HTTP専用のため取得方式の確認が必要。
+
+  # ── マリックスライン ────────────────────────────────
+  - id: marix-service-rss
+    operator_id: marix
+    route_ids: [marix-main]
+    type: rss
+    url: https://marixline.com/service/feed/
+    role: primary
+    confidence: A
+    verified: 2026-09-04
+    robots: unverified       # robots.txt がリダイレクトループで取得できず。実装時に再確認
+    notes: |
+      取得確認済み。タイトルが極めて構造的で、タイトルのパースだけで状態を判定できる。
+      タイトル例:
+        2026年9月6日（日） 鹿児島新港発 奄美群島経由 那覇港向け 下り便【臨時便・航行経路変更】
+        2026年9月6日（日） 鹿児島新港発 奄美群島経由 那覇港向け 下り便【航行経路変更・条件付運航】
+        2026年9月5日（土） 鹿児島新港発 奄美群島経由 那覇港向け 下り便【欠航】
+      description は空なので、詳細が必要な場合のみ記事ページを取得する。
+
+  - id: marix-service-html
+    operator_id: marix
+    route_ids: [marix-main]
+    type: html
+    url: https://marixline.com/service/
+    role: backup
+    confidence: A
+    verified: 2026-09-04
+    robots: unverified
+
+  # ── 瀬戸内町営定期船 ────────────────────────────────
+  - id: setouchi-x
+    operator_id: setouchi
+    route_ids: [setouchi-kakeroma, setouchi-setonami]
+    type: x_timeline
+    url: https://x.com/st_liner_info
+    role: primary
+    confidence: A
+    verified: false
+    robots: unverified
+    notes: |
+      「瀬戸内町営定期船運航情報」公式アカウント。自治体公式のため信頼度A（仕様Q13）。
+      重要: 瀬戸内町は公式サイトに運航状況を掲載しておらず、X と防災情報メールでのみ配信する。
+      つまりこの航路はXが唯一の自動取得経路であり、取得できなければ掲載できない。
+      Xは未ログイン閲覧が制限される場合があるため、フェーズ2着手前に取得可否を検証すること。
+
+  - id: setouchi-html
+    operator_id: setouchi
+    route_ids: [setouchi-kakeroma, setouchi-setonami]
+    type: html
+    url: https://www.town.setouchi.lg.jp/senpaku/jikokuhyou.html
+    role: reference
+    confidence: "-"
+    verified: 2026-09-04
+    robots: allow            # robots.txt は 404（制限なし）
+    notes: 時刻表ページ。運航状況そのものは掲載されない。常設ページからのリンク用。
+
+  # ── 共同組海運（貨物）──────────────────────────────
+  - id: kyodogumi-html
+    operator_id: kyodogumi
+    route_ids: [kyodogumi-a, kyodogumi-b]
+    type: html
+    url: https://www.kyoudougumikaiun.co.jp/page1
+    role: primary
+    confidence: A
+    verified: 2026-09-04
+    robots: unverified
+    notes: |
+      ホームページ内の「船舶動静」欄に運航予定・臨時便・ドック運休が掲載される。
+      RSS等の構造化配信はなく、HTMLのパースが必要。
+
+  # ── 早期検知（集約サイト）──────────────────────────
+  - id: norimono-info-kagoshima
+    operator_id: null
+    route_ids: [marue-main, marix-main, amamikaiun-kikai]
+    type: html
+    url: http://www.norimono-info.com/sp/sp_main?disp=area&pref=kago&lang=
+    role: trigger
+    confidence: "-"
+    verified: false
+    robots: unverified
+    notes: |
+      九州のりものinfo.com（参加事業者127社の集約サイト）の鹿児島県ページ。
+      毎回1リクエストのみ取得し、変化を検知したら該当社の公式へ即時裏取りに行く。
+      ここでの情報は記事の根拠にしない（confidence: "-"）。
+      HTTP専用の可能性があるため取得方式とページ構造を実地で確認すること。
+
+  # ── 気象（荒天モード判定）──────────────────────────
+  - id: jma-warning-amami
+    operator_id: null
+    route_ids: []
+    type: json
+    url: https://www.jma.go.jp/bosai/warning/data/warning/460040.json
+    role: primary
+    confidence: A
+    verified: 2026-09-04
+    robots: unverified
+    notes: |
+      気象庁の気象警報・注意報JSON（奄美地方）。取得確認済み。発表元は名瀬測候所。
+      注意: 460100 は「鹿児島県（奄美地方除く）」であり奄美を含まない。460040 が正しい。
+      対象地域コード: 奄美市 4622200 / 大和村 4652300 / 宇検村 4652400 /
+      瀬戸内町 4652500 / 龍郷町 4652700 / 喜界町 4652900 / 奄美地方 460040
+      警報種別はコード番号で表現される。02〜09が警報、10〜27が注意報、32〜38が特別警報。
+      荒天モードへの昇格は「警報以上が発表中」を条件とし、個別のコードの意味に依存しない。
+
+  # ── クルーズ船（フェーズ3）──────────────────────────
+  - id: cruise-amami-city
+    operator_id: null
+    route_ids: [cruise-naze]
+    type: html
+    url: https://www.city.amami.lg.jp/kanko/kanko/kanko/cruise.html
+    role: primary
+    confidence: A
+    verified: false
+    robots: unverified
+    notes: 奄美市の「クルーズ客船情報」
+
+  - id: cruise-pref-kagoshima
+    operator_id: null
+    route_ids: [cruise-naze]
+    type: html
+    url: http://www.pref.kagoshima.jp/ah09/infra/port/minato/cruising/index_6.html
+    role: backup
+    confidence: A
+    verified: false
+    robots: unverified
+    notes: 鹿児島県の名瀬港クルーズ情報
+
+# ── 表示用リンク（監視しない）────────────────────────
+# 仕様Q10: 空路は監視せず、常設ページにリンクのみ置く
+reference_links:
+  - label: JAL・JAC 運航状況
+    url: https://www.jal.co.jp/jp/ja/dom/status/
+  - label: Peach 運航状況
+    url: https://www.flypeach.com/jp/lp/flight-status

@@ -1,0 +1,11 @@
+import { loadConfig } from '../lib/config.js';
+import { fetchFeed } from '../lib/rss.js';
+import { htmlToText } from '../lib/text.js';
+const cfg = loadConfig();
+const { items } = await fetchFeed(process.argv[2], { userAgent: cfg.userAgent });
+const n = Number(process.argv[3] ?? 0);
+const it = items[n];
+console.log('TITLE:', it.title);
+console.log('CREATOR:', it.creator);
+console.log('--- BODY ---');
+console.log(htmlToText(it.contentHtml));

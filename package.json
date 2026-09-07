@@ -1,0 +1,23 @@
+{
+  "name": "amami-fune",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "奄美大島 船舶動静ブログ 自動収集・公開システム",
+  "scripts": {
+    "watch": "node src/main.js",
+    "watch:dry": "node src/main.js --dry-run --force",
+    "watch:local": "node src/main.js --no-publish --force",
+    "preview": "node src/tools/preview.js 3",
+    "check:parse": "node src/tools/test-entries.js",
+    "check:blog": "node src/tools/check-blog.js",
+    "get-token": "node src/tools/get-refresh-token.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "yaml": "^2.6.1",
+    "fast-xml-parser": "^4.5.1"
+  }
+}
