@@ -32,32 +32,47 @@ export function parseResult(html, date) {
   return { date, ship, depart: depart ?? null };
 }
 
-/** 1日分を問い合わせる */
-export async function fetchDate(date, { userAgent, from = 'kagoshima', to = 'naha' }) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * 1日分を問い合わせる。
+ * 相手先は日付ごとに1回叩く作りなので、失敗しても粘りすぎない。
+ * 短い間隔で続けて叩くと拒まれるため、待ってから1度だけやり直す。
+ */
+export async function fetchDate(date, { userAgent, from = 'kagoshima', to = 'naha', retries = 2 }) {
   const body = new URLSearchParams({
     date, location_start: from, location_end: to, adult: '1', child: '0',
   }).toString();
 
-  const res = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'User-Agent': userAgent,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'text/html',
-    },
-    body,
-    redirect: 'follow',
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return parseResult(await res.text(), date);
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) await sleep(5000 * attempt);
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'User-Agent': userAgent,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'text/html',
+        },
+        body,
+        redirect: 'follow',
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return parseResult(await res.text(), date);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
 }
 
 /** 日付の並びをまとめて問い合わせる。1件ずつ順に、間を空けて呼ぶ */
-export async function fetchDates(dates, { userAgent, waitMs = 1200 }) {
+export async function fetchDates(dates, { userAgent, from = 'kagoshima', to = 'naha', waitMs = 2000 }) {
   const out = [];
   for (const date of dates) {
     if (out.length) await new Promise((r) => setTimeout(r, waitMs));
-    const r = await fetchDate(date, { userAgent });
+    const r = await fetchDate(date, { userAgent, from, to });
     if (r) out.push(r);
   }
   return out;

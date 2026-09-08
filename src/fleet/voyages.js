@@ -85,3 +85,32 @@ export function progress(voyage, now) {
   if (!next && voyage.arriveAt > t) next = voyage.stops[voyage.stops.length - 1];
   return { last, next };
 }
+
+/**
+ * 取得した配船と時刻表から、表示に渡す形を作る。
+ * 下り・上りの2つに分け、それぞれ便の並びを持たせる。
+ */
+export function buildFleetView(fleet, timetables) {
+  const map = { down: timetables.kagoshima_okinawa_down, up: timetables.kagoshima_okinawa_up };
+  const directions = [];
+
+  for (const key of ['down', 'up']) {
+    const timetable = map[key];
+    const departures = fleet?.departures?.[key] ?? [];
+    if (!timetable || !departures.length) continue;
+    directions.push({
+      key,
+      label: timetable.label,
+      summary: timetable.summary,
+      voyages: buildVoyages(departures, timetable),
+    });
+  }
+
+  if (!directions.length) return null;
+  return { ...fleet, directions, links: map.down.sources };
+}
+
+/** 表示に出ている運航会社。案内の書き方を変えるのに使う */
+export function fleetOperatorIds(view) {
+  return new Set((view?.directions ?? []).flatMap((d) => d.voyages.map((v) => v.operator_id)));
+}

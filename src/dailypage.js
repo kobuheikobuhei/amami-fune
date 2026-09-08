@@ -9,6 +9,7 @@
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { jstDate } from './lib/text.js';
 import { buildFleetSection } from './fleetsection.js';
+import { fleetOperatorIds } from './fleet/voyages.js';
 
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 
@@ -129,7 +130,7 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, ope
   const today = jstDate(now);
   const tomorrow = addDays(today, 1);
   // 配船が分かっている運航会社。案内の書き方を変えるために使う。
-  const fleetOperators = new Set((fleet?.voyages ?? []).map((v) => v.operator_id));
+  const fleetOperators = fleetOperatorIds(fleet);
 
   return {
     title: '運航状況',

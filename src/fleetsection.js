@@ -6,7 +6,7 @@
 //
 // 出港日は両社の公式情報、時刻は両社の公式時刻表による。推測は入れない。
 
-import { COLOR, card } from './style.js';
+import { COLOR } from './style.js';
 
 const RUNNING = '#15803d';
 const NEXT = '#1d4ed8';
@@ -18,13 +18,19 @@ function jpDateTime(iso) {
     String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
 }
 
-function heading(text, color) {
-  return '<div style="color:' + color + ';font-weight:bold;font-size:0.92em;' +
-    'letter-spacing:0.04em;margin-bottom:4px">' + text + '</div>';
+/** 囲み。左端の色帯で種類を示す。詰めて並ぶよう余白は小さめにする */
+function box(inner, accent) {
+  return '<div style="border:1px solid ' + COLOR.line + ';border-left:5px solid ' + accent +
+    ';border-radius:8px;padding:10px 13px;margin:0 0 10px;background:#fff">' + inner + '</div>';
+}
+
+function tag(text, color) {
+  return '<div style="color:' + color + ';font-weight:bold;font-size:0.9em;' +
+    'letter-spacing:0.04em;margin-bottom:3px">' + text + '</div>';
 }
 
 function shipLine(v) {
-  return '<div style="font-size:1.12em;font-weight:700;overflow-wrap:anywhere">' + v.ship +
+  return '<div style="font-size:1.1em;font-weight:700;overflow-wrap:anywhere">' + v.ship +
     '<span style="font-size:0.78em;font-weight:400;color:' + COLOR.muted + '">　' + v.name + '</span></div>';
 }
 
@@ -33,83 +39,100 @@ function noteLine(note) {
   const more = note.url
     ? ' <a href="' + note.url + '" style="color:' + COLOR.link + ';font-weight:600">詳しく見る</a>'
     : '';
-  return '<div style="margin-top:6px;color:#b45309;font-weight:600;font-size:0.95em;line-height:1.8">' +
+  return '<div style="margin-top:5px;color:#b45309;font-weight:600;font-size:0.95em;line-height:1.8">' +
     note.text + more + '</div>';
 }
 
-/** 航行中の1隻 */
-function runningCard(v, now, note) {
-  const last = [...v.stops].reverse().find((s) => s.departAt && s.departAt <= now);
-  const next = v.stops.find((s) => s.arriveAt && s.arriveAt > now);
-
-  const route = '<div style="margin-top:5px;color:#374151;font-size:0.97em;line-height:1.8;overflow-wrap:anywhere">' +
-    jpDateTime(v.departAt) + '　' + v.stops[0].port + '発' +
-    '<br>' + jpDateTime(v.arriveAt) + '　' + v.stops[v.stops.length - 1].port + '着</div>';
-
-  const where = (last || next)
-    ? '<div style="margin-top:6px;font-size:0.95em;color:' + COLOR.muted + ';line-height:1.8">' +
-      (last ? '直前の寄港　' + last.port + ' ' + last.depart + '発' : '') +
-      (last && next ? '<br>' : '') +
-      (next ? '次の寄港　　' + next.port + ' ' + next.arrive + '着' : '') +
-      '</div>'
-    : '';
-
-  return card(heading('航行中', RUNNING) + shipLine(v) + route + where + noteLine(note), RUNNING);
+function sub(text) {
+  return '<div style="margin-top:5px;font-size:0.94em;color:' + COLOR.muted + ';line-height:1.8">' + text + '</div>';
 }
 
-/** 次に出港する1隻 */
-function nextCard(v, note) {
-  const stops = v.stops.slice(1, 3)
-    .map((s) => s.port + ' ' + jpDateTime(s.arriveAt) + '着')
-    .join('<br>');
+function span(v) {
+  const first = v.stops[0];
+  const last = v.stops[v.stops.length - 1];
+  return '<div style="margin-top:4px;color:#374151;font-size:0.96em;line-height:1.8;overflow-wrap:anywhere">' +
+    jpDateTime(v.departAt) + '　' + first.port + '発<br>' +
+    jpDateTime(v.arriveAt) + '　' + last.port + '着</div>';
+}
 
-  return card(
-    heading('次の出港', NEXT) + shipLine(v) +
-    '<div style="margin-top:5px;color:#374151;font-size:0.97em;line-height:1.8;overflow-wrap:anywhere">' +
-    jpDateTime(v.departAt) + '　' + v.stops[0].port + '発</div>' +
-    (stops ? '<div style="margin-top:6px;font-size:0.95em;color:' + COLOR.muted + ';line-height:1.8">' + stops + '</div>' : '') +
-    noteLine(note),
-    NEXT
-  );
+/** 航行中の1隻。いまどこにいるかを添える */
+function runningBox(v, now, note) {
+  const last = [...v.stops].reverse().find((s) => s.departAt && s.departAt <= now);
+  const next = v.stops.find((s) => s.arriveAt && s.arriveAt > now);
+  const where = [
+    last ? '直前の寄港　' + last.port + ' ' + last.depart + '発' : null,
+    next ? '次の寄港　　' + next.port + ' ' + next.arrive + '着' : null,
+  ].filter(Boolean).join('<br>');
+
+  return box(tag('航行中', RUNNING) + shipLine(v) + span(v) + (where ? sub(where) : '') + noteLine(note), RUNNING);
 }
 
 /**
- * 便に関わる発表があれば、その文言を返す。
+ * 次に出港する1隻。
+ *
+ * 読者は奄美にいる。下りなら名瀬に何時に着くか、上りなら名瀬を何時に出るかが
+ * 知りたいことなので、寄港地の先頭ではなく名瀬の時刻を示す。
+ */
+function nextBox(v, note) {
+  const naze = v.stops.find((s) => s.port === '名瀬港');
+  const calls = naze
+    ? naze.port + '　' + [
+        naze.arrive ? jpDateTime(naze.arriveAt) + '着' : null,
+        naze.depart ? naze.depart + '発' : null,
+      ].filter(Boolean).join('　')
+    : v.stops.slice(1, 3).map((s) => s.port + ' ' + jpDateTime(s.arriveAt) + '着').join('<br>');
+
+  return box(tag('次の出港', NEXT) + shipLine(v) + span(v) + (calls ? sub(calls) : '') + noteLine(note), NEXT);
+}
+
+/**
+ * 便に関わる発表があれば、その文言と記事を返す。
  * 予定を示しておきながら欠航の発表を伏せるのが、いちばん危うい。
  */
 function noticeFor(v, events, labelOf) {
   const hit = (events ?? []).find((e) =>
     e.operator_id === v.operator_id &&
     (e.service_date ?? null) === v.date &&
-    (!e.ship || e.ship === v.ship)
+    (!e.ship || e.ship === v.ship) &&
+    (!e.direction || e.direction === v.direction)
   );
   return hit ? { text: labelOf(hit), url: hit.published_post?.url ?? null } : null;
 }
 
+/** 片方向ぶんの並び */
+function directionBlock({ voyages, label, summary, now, events, labelOf }) {
+  const running = voyages.filter((v) => v.departAt <= now && now < v.arriveAt);
+  const next = voyages.find((v) => v.departAt > now) ?? null;
+  if (!running.length && !next) return '';
+
+  return '<h3 style="margin:16px 0 8px;font-size:1.05em">' + label +
+    '<span style="font-weight:400;font-size:0.82em;color:' + COLOR.muted + '">　' + summary + '</span></h3>' +
+    running.map((v) => runningBox(v, now, noticeFor(v, events, labelOf))).join('') +
+    (next ? nextBox(next, noticeFor(next, events, labelOf)) : '');
+}
+
 /**
- * fleet: { voyages, sources, problems }
+ * fleet: { directions: [{ voyages, label, summary }], problems, links }
  * 解析が壊れているときは何も出さない。誤った予定は、示さないより有害。
  */
 export function buildFleetSection({ fleet, now, events = [], labelOf = () => '発表あり' }) {
   if (!fleet || fleet.problems?.length) return '';
 
   const t = new Date(now).toISOString();
-  const running = fleet.voyages.filter((v) => v.departAt <= t && t < v.arriveAt);
-  const next = fleet.voyages.find((v) => v.departAt > t) ?? null;
-  if (!running.length && !next) return '';
-
-  const cards =
-    running.map((v) => runningCard(v, t, noticeFor(v, events, labelOf))).join('') +
-    (next ? nextCard(next, noticeFor(next, events, labelOf)) : '');
+  const blocks = (fleet.directions ?? [])
+    .map((d) => directionBlock({ ...d, now: t, events, labelOf }))
+    .filter(Boolean)
+    .join('');
+  if (!blocks) return '';
 
   const links = (fleet.links ?? [])
     .map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener" style="color:' + COLOR.link + '">' + l.label + '</a>')
     .join('　');
 
-  return '<h2 style="margin:18px 0 10px">現在の運航</h2>' +
-    cards +
-    '<p style="font-size:0.88em;color:' + COLOR.muted + ';line-height:1.8;margin:-4px 0 18px">' +
-    '鹿児島〜奄美群島〜沖縄の下り便（鹿児島発）の予定です。出港日と時刻は各社公式によります。' +
+  return '<h2 style="margin:18px 0 4px">現在の運航</h2>' +
+    blocks +
+    '<p style="font-size:0.88em;color:' + COLOR.muted + ';line-height:1.8;margin:6px 0 18px">' +
+    '鹿児島〜奄美群島〜沖縄を結ぶ4隻の予定です。出港日と時刻は各社公式によります。' +
     '天候などで変更されることがあるため、乗船前に各社公式でご確認ください。' +
     (links ? '<br>' + links : '') +
     '</p>';

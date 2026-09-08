@@ -208,7 +208,8 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
       add("重大", "配船", "配船予定が古くなっています",
         Math.floor(hours) + "時間前の取得のまま更新されていません");
     }
-    const covered = new Set((fleet.departures ?? []).map((d) => d.date));
+    const down = fleet.departures?.down ?? [];
+    const up = fleet.departures?.up ?? [];
     const tomorrow = jstDate(new Date(new Date(now).getTime() + 86400000).toISOString());
     // 出港の無い日はあるので、窓が届いているかだけを見る。
     if (!fleet.to || fleet.to < tomorrow) {
@@ -218,8 +219,9 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
     for (const p of fleet.problems ?? []) {
       add("重大", "配船", "配船予定の突き合わせで矛盾が出ています", p);
     }
-    if (!covered.size) {
-      add("重大", "配船", "配船予定が1便も取れていません", "公式の読み取りが壊れている可能性があります");
+    if (!down.length || !up.length) {
+      add("重大", "配船", "配船予定が片方向でも取れていません",
+        "下り " + down.length + "便 / 上り " + up.length + "便 — 公式の読み取りが壊れている可能性があります");
     }
   }
   return { ...ctx, candidates, ledger, posts, findings };

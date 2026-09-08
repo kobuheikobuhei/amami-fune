@@ -1,22 +1,23 @@
 # 鹿児島〜奄美群島〜沖縄 定期航路の時刻。
 #
 # マルエーフェリーとマリックスラインが1日1便を分け合う航路で、
-# 両社の公式時刻表は同じ時刻を掲げている。両方で確認した。
+# 両社の公式が同じ時刻を掲げている。下り・上りとも両方で確認した。
 #
-#   マルエーフェリー「2026年度 運航スケジュール（鹿児島航路）」
-#   マリックスライン「年間運航スケジュール（2026年度）」
-#
-# 上り便（沖縄発）の時刻はマリックスラインの公式時刻表にはあるが、
-# マルエーフェリーの公表資料では確認できていない。誤った時刻を
-# 載せないため、当面は下り便だけを扱う。
+#   マルエーフェリー「乗り場とアクセス」下り／上りの入港・出港時間の表
+#     https://www.aline-ferry.com/kagoshima/access/
+#     時刻表のページはPDFの配布だけで、時刻そのものはこちらに載っている。
+#   マルエーフェリー「2026年度 運航スケジュール（鹿児島航路）／上期」（下り）
+#   マリックスライン「年間運航スケジュール（2026年度）」（下り・上り）
 #
 # day は出港日を1日目とした通し日数。
 
 kagoshima_okinawa_down:
-  label: 鹿児島発 下り便
+  label: 下り便
+  direction: down
+  summary: 鹿児島 → 奄美群島 → 沖縄
   sources:
-    - label: マルエーフェリー 時刻表
-      url: https://www.aline-ferry.com/kagoshima/time/
+    - label: マルエーフェリー 発着時刻
+      url: https://www.aline-ferry.com/kagoshima/access/
     - label: マリックスライン 時刻表
       url: https://marixline.com/timetable/
   stops:
@@ -53,3 +54,47 @@ kagoshima_okinawa_down:
       area: 沖縄
       day: 2
       arrive: "19:00"
+
+kagoshima_okinawa_up:
+  label: 上り便
+  direction: up
+  summary: 沖縄 → 奄美群島 → 鹿児島
+  sources:
+    - label: マルエーフェリー 発着時刻
+      url: https://www.aline-ferry.com/kagoshima/access/
+    - label: マリックスライン 時刻表
+      url: https://marixline.com/timetable/
+  stops:
+    - port: 那覇港
+      area: 沖縄
+      day: 1
+      depart: "07:00"
+    - port: 本部港
+      area: 沖縄
+      day: 1
+      arrive: "09:00"
+      depart: "09:20"
+    - port: 与論港
+      area: 与論島
+      day: 1
+      arrive: "11:50"
+      depart: "12:10"
+    - port: 和泊港
+      area: 沖永良部島
+      day: 1
+      arrive: "14:10"
+      depart: "14:40"
+    - port: 亀徳港
+      area: 徳之島
+      day: 1
+      arrive: "16:30"
+      depart: "17:00"
+    - port: 名瀬港
+      area: 奄美大島
+      day: 1
+      arrive: "20:30"
+      depart: "21:20"
+    - port: 鹿児島新港
+      area: 鹿児島
+      day: 2
+      arrive: "08:30"

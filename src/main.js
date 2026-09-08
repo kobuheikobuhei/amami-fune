@@ -25,7 +25,7 @@ import { watchTyphoon } from './watchers/typhoon.js';
 import { buildTyphoonPage } from './typhoonpage.js';
 import { buildDailyPage } from './dailypage.js';
 import { fetchFleet, shouldRefresh } from './fleet/index.js';
-import { buildVoyages } from './fleet/voyages.js';
+import { buildFleetView } from './fleet/voyages.js';
 import { buildNav, buildArticleNav } from './nav.js';
 import { buildTyphoonAlert } from './alert.js';
 import { buildScopeNotice } from './scope.js';
@@ -272,10 +272,11 @@ async function main() {
         // もっともらしい誤った予定を載せるのは、載せないより有害。
         log("  配船予定に矛盾: " + fetched.problems.join(" / "));
         notify.push("- 配船予定の突き合わせで矛盾: " + fetched.problems.join(" / "));
-        fleet = { ...fetched, departures: [] };
+        fleet = { ...fetched, departures: { down: [], up: [] } };
       } else {
         fleet = fetched;
-        log("  配船予定を更新: " + fetched.departures.length + "便（" + fetched.from + "〜" + fetched.to + "）");
+        log("  配船予定を更新: 下り" + fetched.departures.down.length + "便 / 上り" + fetched.departures.up.length +
+          "便（" + fetched.from + "〜" + fetched.to + "）");
       }
     } catch (err) {
       log("  配船予定の取得に失敗: " + err.message);
@@ -283,14 +284,7 @@ async function main() {
     }
   }
 
-  const downTimetable = cfg.timetables.kagoshima_okinawa_down;
-  const fleetView = fleet?.departures?.length
-    ? {
-        ...fleet,
-        voyages: buildVoyages(fleet.departures, downTimetable),
-        links: downTimetable.sources,
-      }
-    : null;
+  const fleetView = buildFleetView(fleet, cfg.timetables);
 
   try {
     const dailyPage = buildDailyPage({
@@ -343,7 +337,7 @@ async function main() {
       updated: updated.length,
       seeded: seeded.length,
       status_pages: Object.keys(pageIds).length,
-      fleet_departures: fleet?.departures?.length ?? 0,
+      fleet_departures: (fleet?.departures?.down?.length ?? 0) + (fleet?.departures?.up?.length ?? 0),
       notifications: notify.length,
     };
     writeDiagnostics(diagnostics);

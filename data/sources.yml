@@ -254,6 +254,14 @@ fleet_schedules:
       運航しない日は時刻表を返さない。会社自身が日付ごとに公表している。
       相手先への負荷を避けるため、呼ぶのは1日1回・必要な日数だけにする。
   - operator: marue
+    label: 乗り場とアクセス
+    page: https://www.aline-ferry.com/kagoshima/access/
+    kind: html
+    role: primary
+    note: |
+      下り・上りの入港時刻と出港時刻の表がある。マリックスの公表時刻と一致する。
+      時刻表のページはPDFの配布だけで、時刻そのものはこちらに載っている。
+  - operator: marue
     label: 2026年度 運航スケジュール（鹿児島航路）／上期
     page: https://www.aline-ferry.com/kagoshima/time/
     kind: pdf

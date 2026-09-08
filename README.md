@@ -77,7 +77,7 @@ Windows の PowerShell は既定でスクリプトの実行を禁止している
 | `state/health.json` | 監視先ごとの取得の成否と連続失敗回数 |
 | `state/mode.json` | 平常モードか荒天モードか |
 | `state/events.jsonl` | これまでに検出した全イベントの台帳 |
-| `state/fleet.json` | どの船がいつ鹿児島を出るかの予定（両社公式から取得） |
+| `state/fleet.json` | どの船がいつ出港するかの予定。下り・上りとも（両社公式から取得） |
 
 ## 初期設定
 

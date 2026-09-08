@@ -10,7 +10,7 @@ import { watchMarix } from '../watchers/marix.js';
 import { toCandidates, ongoingNotices, normalShips } from '../curator.js';
 import { readEvents, latestEventsByKey, readFleet } from '../lib/state.js';
 import { buildDailyPage } from '../dailypage.js';
-import { buildVoyages } from '../fleet/voyages.js';
+import { buildFleetView } from '../fleet/voyages.js';
 import { fetchFleet, shouldRefresh } from '../fleet/index.js';
 import { buildScopeNotice } from '../scope.js';
 
@@ -38,10 +38,7 @@ const normalByRoute = normalShips(obs, { now }).reduce((a, n) => ((a[n.route_id]
 
 let fleet = readFleet();
 if (shouldRefresh(fleet, now)) fleet = await fetchFleet({ userAgent: cfg.userAgent, now });
-const tt = cfg.timetables.kagoshima_okinawa_down;
-const fleetView = fleet?.departures?.length
-  ? { ...fleet, voyages: buildVoyages(fleet.departures, tt), links: tt.sources }
-  : null;
+const fleetView = buildFleetView(fleet, cfg.timetables);
 
 const page = buildDailyPage({
   routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
@@ -58,5 +55,5 @@ writeFileSync(out,
   '<h1 style="font-size:1.4em">' + page.title + '</h1>' + page.body, 'utf8');
 
 console.log('題名: ' + page.title);
-console.log('配船: ' + (fleetView ? fleetView.voyages.length + '便' : 'なし'));
+console.log('配船: ' + (fleetView ? fleetView.directions.map(d => d.label + ' ' + d.voyages.length + '便').join(' / ') : 'なし'));
 console.log('書き出し: ' + out);
