@@ -213,6 +213,29 @@ sources:
 
 # ── 表示用リンク（監視しない）────────────────────────
 # 仕様Q10: 空路は監視せず、常設ページにリンクのみ置く
+# ── 配船予定（本来どの船が動くか）──────────────────
+# いずれもPDFで、HTMLで取れる形の資料は存在しない。
+# 現時点ではリンクとして読者に案内するのみ。解析は段階的に行う。
+#
+#  マリックスライン 年間  月ごとに船名と出港日の数字が並ぶ。最も解析しやすい
+#  マルエーフェリー 年間  記号（●○入）の位置で日付に対応。数が合わない箇所あり
+#  第一海運 月次        ○印と便番号。URLが年月から作れる唯一の資料
+#
+fleet_schedules:
+  - operator: marix
+    label: 年間運航スケジュール（2026年度）
+    page: https://marixline.com/price_schedule/#timetable
+    note: PDFのURLはハッシュ値のため、毎回ページから探す必要がある
+  - operator: marue
+    label: 2026年 年間スケジュール
+    page: https://www.aline-ferry.com/kagoshima/time/
+    note: 同上。記号表のため解析は難しい
+  - operator: multi
+    label: 配船予定表（第一海運・月次）
+    page: https://www.daiichikaiun.co.jp/
+    url_pattern: https://www.daiichikaiun.co.jp/wordpress/wp-content/uploads/YYYY/MM/YYYYMM-1.pdf
+    note: マルエーと奄美海運の全船を1枚に。便番号とドック・運休も明記される
+
 reference_links:
   - label: JAL・JAC 運航状況
     url: https://www.jal.co.jp/jp/ja/dom/status/

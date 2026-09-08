@@ -14,6 +14,10 @@ operators:
     site: https://www.aline-ferry.com/kagoshima/
     schedule_label: 時刻表
     schedule_url: https://www.aline-ferry.com/kagoshima/time/
+    fleet_label: 年間スケジュール（配船）
+    fleet_url: https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf
+    fleet_extra_label: 配船予定表（第一海運・月次）
+    fleet_extra_url: https://www.daiichikaiun.co.jp/
     note: 奄美海運と共通のサイト（A"LINE）で運航状況を配信
 
   marix:
@@ -21,12 +25,16 @@ operators:
     site: https://marixline.com/
     schedule_label: 運賃・時刻表
     schedule_url: https://marixline.com/price_schedule/
+    fleet_label: 年間運航スケジュール（配船）
+    fleet_url: https://marixline.com/price_schedule/#timetable
 
   amamikaiun:
     name: 奄美海運株式会社
     site: https://www.aline-ferry.com/amami/
     schedule_label: 時刻表
     schedule_url: https://www.aline-ferry.com/amami/time/
+    fleet_label: 配船予定表（第一海運）
+    fleet_url: https://www.daiichikaiun.co.jp/
     note: マルエーフェリーと共通サイト
 
   setouchi:
@@ -41,6 +49,8 @@ operators:
     site: https://www.kyoudougumikaiun.co.jp/
     schedule_label: 配船予定表
     schedule_url: https://www.kyoudougumikaiun.co.jp/page2
+    fleet_label: 配船予定表
+    fleet_url: https://www.kyoudougumikaiun.co.jp/page2
     note: 貨物船（RORO）。ホームページに「船舶動静」欄がある
 
 routes:

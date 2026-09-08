@@ -90,11 +90,17 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, headin
     }).join('');
 
     // 船の案内があるときは、便の有無を時刻表で確かめてもらう
-    const scheduleHint = (shipItems || noticeItems) && op?.schedule_url
-      ? '<p style="font-size:0.92em;color:#555;margin:2px 0 10px;line-height:1.8">' +
-        '船の入れ替えにより、便そのものは運航される場合があります。' +
-        '<a href="' + op.schedule_url + '" target="_blank" rel="noopener">' +
-        (op.schedule_label ?? '時刻表') + '</a>でご確認ください。</p>'
+    // 船の案内があるときは、実際に便があるかを読者が確かめられるようにする。
+    // 時刻表は「何時発か」、配船予定は「どの船が動くか」で、必要なのは後者。
+    const links = [];
+    if (op?.fleet_url) links.push('<a href="' + op.fleet_url + '" target="_blank" rel="noopener">' + (op.fleet_label ?? '配船予定') + '</a>');
+    if (op?.fleet_extra_url) links.push('<a href="' + op.fleet_extra_url + '" target="_blank" rel="noopener">' + (op.fleet_extra_label ?? '配船予定') + '</a>');
+    if (op?.schedule_url) links.push('<a href="' + op.schedule_url + '" target="_blank" rel="noopener">' + (op.schedule_label ?? '時刻表') + '</a>');
+
+    const scheduleHint = (shipItems || noticeItems) && links.length
+      ? '<p style="font-size:0.92em;color:#555;margin:2px 0 12px;line-height:1.9">' +
+        '船が入れ替わることがあり、便そのものは運航される場合があります。' +
+        'どの船が動く予定かは ' + links.join('　') + ' でご確認ください。</p>'
       : '';
 
     const body = (noticeItems || shipItems || serviceItems)

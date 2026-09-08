@@ -89,6 +89,18 @@ export function buildStatusPage({ route, operator, events, health, officialUrl, 
     .filter((e) => (e.service_date_end ?? e.service_date) >= today)
     .sort((a, b) => a.service_date.localeCompare(b.service_date));
 
+  // 配船予定への導線。船の入れ替えを読者が確かめられるようにする。
+  const fleetItems = [
+    operator?.fleet_url ? '<li><a href="' + operator.fleet_url + '" target="_blank" rel="noopener">' + (operator.fleet_label ?? '配船予定') + '</a></li>' : '',
+    operator?.fleet_extra_url ? '<li><a href="' + operator.fleet_extra_url + '" target="_blank" rel="noopener">' + operator.fleet_extra_label + '</a></li>' : '',
+    operator?.schedule_url ? '<li><a href="' + operator.schedule_url + '" target="_blank" rel="noopener">' + (operator.schedule_label ?? '時刻表') + '</a></li>' : '',
+  ].filter(Boolean).join('');
+  const fleetLinks = fleetItems
+    ? '<h3>本来の運航予定</h3><ul style="line-height:2">' + fleetItems + '</ul>' +
+      '<p style="font-size:0.9em;color:#555;line-height:1.7">どの日にどの船が運航する予定かは、これらの資料でご確認ください。' +
+      '船の入れ替えにより、案内と実際の運航が異なる場合があります。</p>'
+    : '';
+
   const banner = failureBanner(health, failThreshold);
   const isBroken = banner !== '';
 
@@ -127,7 +139,7 @@ ${referenceLinks.map((l) => `<li><a href="${l.url}" target="_blank" rel="noopene
 </ul>
 <p style="font-size:0.9em;color:#555">当サイトが監視している情報ではありません。各提供元でご確認ください。</p>` : ''}
 
-<h3>公式情報</h3>
+${fleetLinks}<h3>公式情報</h3>
 <p><a href="${officialUrl}" target="_blank" rel="noopener">${operator?.name ?? route.name} 公式サイト</a></p>
 
 <hr>
