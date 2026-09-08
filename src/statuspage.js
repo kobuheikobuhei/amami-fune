@@ -123,7 +123,7 @@ export function buildStatusPage({ route, operator, events, health, officialUrl, 
         ? '<p style="color:#6b7280;line-height:1.8">上記のほかに、日を指定した欠航・ダイヤ変更の発表はありません。</p>'
         : '<p style="color:#6b7280;line-height:1.8">現在、欠航・ダイヤ変更の発表はありません（平常運航）。</p>';
 
-  const body = `${nav}${alert}${banner}${noticeSection(notices)}<p style="color:#555;font-size:0.9em;line-height:1.7">公式の発表を確認した時刻: ${jst(now)}<br><span style="font-size:0.95em">この時刻の時点で、下記以外の発表は出ていません。</span></p>
+  const body = `${nav}${alert}${banner}${noticeSection(notices)}<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ${jst(now)}<br><span style="font-size:0.95em">この時刻の時点で、下記以外の発表は出ていません。</span></p>
 
 <h2>${route.name}</h2>
 ${route.ships?.length ? `<p style="color:#555">運航船: ${route.ships.join(' / ')}</p>` : ''}
