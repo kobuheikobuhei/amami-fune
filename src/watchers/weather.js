@@ -7,6 +7,7 @@
 
 import { fetchText } from '../lib/fetcher.js';
 import { NAZE } from './typhoon.js';
+import { jstDate } from '../lib/text.js';
 
 // 奄美大島とその周辺（喜界島を含む）。仕様Q6の対象範囲に対応する。
 export const AMAMI_AREA_CODES = new Set([
@@ -111,6 +112,13 @@ export function decideMode(previous, weather, typhoons, now) {
  */
 export function shouldRun(mode, previousLastRun, now) {
   if (!previousLastRun) return true;
+
+  // 日本時間の日付が変わったら、間隔に関わらず必ず収集する。
+  // 「今日・明日の運航状況」は日付をまたいだ瞬間に中身が変わるべきもので、
+  // 間引くと日付が変わっても前日のままになる。
+  // 実際、23時55分に収集した翌日は、0時50分ごろまで前日の表示が残っていた。
+  if (jstDate(now) !== jstDate(previousLastRun)) return true;
+
   const minutes = (new Date(now) - new Date(previousLastRun)) / 60000;
   // 起動の揺らぎで1回飛ばされないよう、目標より少し手前で通す
   return minutes >= (mode === 'rough' ? 25 : 55);

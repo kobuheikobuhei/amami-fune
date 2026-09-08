@@ -1,5 +1,5 @@
 {
-  "at": "2026-09-08T14:55:12.057Z",
+  "at": "2026-09-08T17:29:36.168Z",
   "credential_lengths": {
     "BLOGGER_BLOG_ID": 19,
     "GOOGLE_CLIENT_ID": 72,
@@ -7,9 +7,9 @@
     "GOOGLE_REFRESH_TOKEN": 103
   },
   "mail_lengths": {
-    "MAIL_USERNAME": 22,
-    "MAIL_PASSWORD": 16,
-    "MAIL_TO": 22
+    "MAIL_USERNAME": 0,
+    "MAIL_PASSWORD": 0,
+    "MAIL_TO": 0
   },
   "result": {
     "mode": "normal",
