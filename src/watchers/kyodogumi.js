@@ -16,7 +16,7 @@
 
 import { fetchText } from '../lib/fetcher.js';
 import { htmlToText, shortHash, stripPhoneNumbers } from '../lib/text.js';
-import { classify, detailLabel } from '../lib/status.js';
+import { classify, detailLabel, detailPhrase } from '../lib/status.js';
 
 // この会社が使う地名。港名ではなく島名で書かれる。
 const PLACES = [
@@ -131,7 +131,7 @@ export async function watchKyodogumi(source, { userAgent }) {
       status,
       direction: null,
       origin: null,
-      detail: detailLabel(content, status),
+      detail: detailPhrase(content, status),
       specificity: 2,
       line: content.slice(0, 200),
     }));
@@ -142,7 +142,7 @@ export async function watchKyodogumi(source, { userAgent }) {
       route_id: source.route_ids?.[0] ?? null,
       ship,
       status,
-      detail: detailLabel(content, status),
+      detail: detailPhrase(content, status),
       entries,
       port_notes: places.length && status === 'conditional'
         ? [{ kind: 'conditional', ports: places }]

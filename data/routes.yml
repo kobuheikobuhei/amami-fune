@@ -12,25 +12,35 @@ operators:
   marue:
     name: マルエーフェリー株式会社
     site: https://www.aline-ferry.com/kagoshima/
+    schedule_label: 時刻表
+    schedule_url: https://www.aline-ferry.com/kagoshima/time/
     note: 奄美海運と共通のサイト（A"LINE）で運航状況を配信
 
   marix:
     name: マリックスライン株式会社
     site: https://marixline.com/
+    schedule_label: 運賃・時刻表
+    schedule_url: https://marixline.com/price_schedule/
 
   amamikaiun:
     name: 奄美海運株式会社
     site: https://www.aline-ferry.com/amami/
+    schedule_label: 時刻表
+    schedule_url: https://www.aline-ferry.com/amami/time/
     note: マルエーフェリーと共通サイト
 
   setouchi:
     name: 瀬戸内町（町営定期船）
     site: https://www.town.setouchi.lg.jp/cho/kurashi/kotsu/senpaku/index.html
+    schedule_label: 時刻表
+    schedule_url: https://www.town.setouchi.lg.jp/senpaku/jikokuhyou.html
     note: 運航状況は公式サイトに掲載されず、X と防災情報メールでのみ配信される
 
   kyodogumi:
     name: 共同組海運株式会社
     site: https://www.kyoudougumikaiun.co.jp/
+    schedule_label: 配船予定表
+    schedule_url: https://www.kyoudougumikaiun.co.jp/page2
     note: 貨物船（RORO）。ホームページに「船舶動静」欄がある
 
 routes:

@@ -250,6 +250,7 @@ async function main() {
       routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
       eventsByRoute: eventsByRouteAll,
       noticesByRoute,
+      operators: cfg.operators,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
       scope: scopeNotice,
       alert: typhoonAlert,

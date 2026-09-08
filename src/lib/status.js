@@ -97,3 +97,31 @@ export function detailLabel(text, status = null) {
   }
   return best;
 }
+
+
+/**
+ * 表示に使う言い回しを、本文に実際に書かれている語から組み立てる。
+ *
+ * 「ドック入り」と「運休」は別のことを指す。船がドックに入っても、
+ * 別の船が入れば便は動く。公式が運休と言っていないのに運休と書けば、
+ * 船が来ないという誤解を与える。
+ *
+ * 実際、マルエーフェリーのドック案内は船の入渠を告げるだけで
+ * 便の運休には触れていない。一方、共同組海運のドック案内は
+ * 「運休となります」と明記している。両者を同じ言葉で表してはいけない。
+ */
+export function detailPhrase(text, status) {
+  if (!text) return null;
+  const has = (w) => text.includes(w);
+
+  const dock = has('ドック') || has('入渠');
+  const suspended = has('運休');
+  const failure = has('機関故障');
+
+  if (dock && suspended) return 'ドック入りのため運休';
+  if (dock) return 'ドック入り';
+  if (failure && suspended) return '機関故障のため運休';
+  if (suspended) return '運休';
+
+  return detailLabel(text, status);
+}

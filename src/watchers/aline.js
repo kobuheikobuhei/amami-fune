@@ -18,7 +18,7 @@ import {
   htmlToText, extractDateUnits, extractDirection, extractOrigin, shortHash,
   stripPhoneNumbers, cutContactBlock, extractPortNotes,
 } from '../lib/text.js';
-import { classify, detailLabel } from '../lib/status.js';
+import { classify, detailLabel, detailPhrase } from '../lib/status.js';
 
 const SHIP_BY_SLUG = {
   'ferry-akebono': 'フェリーあけぼの',
@@ -82,7 +82,7 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
         status,
         direction: specificity === 1 ? null : extractDirection(line),
         origin: specificity === 1 ? null : extractOrigin(line),
-        detail: detailLabel(line, status) ?? detailLabel(heading ?? '', status) ?? null,
+        detail: detailPhrase(line, status) ?? detailPhrase(heading ?? '', status) ?? null,
         specificity,
         line,
       });
@@ -125,7 +125,7 @@ export async function watchAline(source, { userAgent }) {
       route_id: routeId ?? source.route_ids?.[0] ?? null,
       ship,
       status: titleStatus,
-      detail: detailLabel(item.title, titleStatus) ?? detailLabel(body, titleStatus),
+      detail: detailPhrase(item.title, titleStatus) ?? detailPhrase(body, titleStatus),
       entries,
       port_notes: extractPortNotes(body),
       service_dates: [...new Set(entries.map((e) => e.service_date))].sort(),
