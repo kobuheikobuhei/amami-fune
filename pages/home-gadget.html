@@ -1,45 +1,86 @@
-<div id="amami-daily">
-  <p style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin:0 0 16px">
+<div id="amami-daily" style="display:none">
+  <p id="amami-daily-fallback" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin:0 0 16px">
     <a href="https://amami-fune.blogspot.com/p/blog-page_578.html" style="color:#1d4ed8;font-weight:bold;text-decoration:none">今日・明日の運航状況を見る</a>
   </p>
 </div>
 
 <script>
-/* 今日・明日の運航状況を、このブログのページから読み込んで表示する。
-   読み込めなかった場合は、上のリンクがそのまま残る。 */
+/* トップページにだけ、今日・明日の運航状況を表示する。
+   Bloggerのガジェットは全ページに出るため、ホーム以外では自身を隠す。
+   ページの特定はURLで行う。日本語の題名で照合すると、貼り付けの過程で
+   文字が変わったときに一致しなくなるため。
+   読み込みに失敗しても、リンクは残るので読者は到達できる。 */
 (function () {
-  var TITLE = '今日・明日の運航状況';
+  var PAGE_PATH = '/p/blog-page_578.html';
+  var HEADING = '\u4eca\u65e5\u30fb\u660e\u65e5\u306e\u904b\u822a\u72b6\u6cc1';
+
   var box = document.getElementById('amami-daily');
   if (!box) return;
 
-  var url = '/feeds/pages/default?alt=json&max-results=50';
+  // ホーム以外では何も出さない。
+  // 記事や固定ページには、上部のメニューから移動してもらう。
+  var path = location.pathname;
+  var isHome = (path === '/' || path === '');
+  if (!isHome) return;
+
+  box.style.display = '';
+
+  function note(text, color) {
+    var el = document.getElementById('amami-daily-note');
+    if (!el) {
+      el = document.createElement('span');
+      el.id = 'amami-daily-note';
+      el.style.marginLeft = '10px';
+      el.style.fontSize = '0.85em';
+      var fb = document.getElementById('amami-daily-fallback');
+      if (fb) fb.appendChild(el);
+    }
+    el.style.color = color || '#666';
+    el.textContent = text;
+  }
+
+  note('\u8aad\u307f\u8fbc\u307f\u4e2d\u2026');
+
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
+  xhr.open('GET', '/feeds/pages/default?alt=json&max-results=50', true);
+  xhr.onerror = function () { note('NG: network', '#b91c1c'); };
+
   xhr.onreadystatechange = function () {
-    if (xhr.readyState !== 4 || xhr.status !== 200) return;
+    if (xhr.readyState !== 4) return;
+    if (xhr.status !== 200) { note('NG: http ' + xhr.status, '#b91c1c'); return; }
     try {
       var data = JSON.parse(xhr.responseText);
       var entries = (data.feed && data.feed.entry) || [];
       var target = null;
-      for (var i = 0; i < entries.length; i++) {
-        if (entries[i].title && entries[i].title.$t === TITLE) { target = entries[i]; break; }
-      }
-      if (!target || !target.content) return;
 
-      var holder = document.createElement('div');
-      holder.innerHTML = target.content.$t;
-      var core = holder.querySelector('#daily-core');
-      if (!core) return;
+      for (var i = 0; i < entries.length && !target; i++) {
+        var links = entries[i].link || [];
+        for (var k = 0; k < links.length; k++) {
+          if (links[k].rel === 'alternate' && links[k].href &&
+              links[k].href.indexOf(PAGE_PATH) >= 0) { target = entries[i]; break; }
+        }
+      }
+
+      if (!target) { note('NG: page not found (' + entries.length + ' entries)', '#b91c1c'); return; }
+
+      var html = target.content ? target.content.$t : '';
+      var mark = '<div id="daily-core">';
+      var start = html.indexOf(mark);
+      if (start < 0) { note('NG: marker missing', '#b91c1c'); return; }
+      var inner = html.slice(start + mark.length);
+      var end = inner.lastIndexOf('</div>');
+      if (end >= 0) inner = inner.slice(0, end);
 
       box.innerHTML =
-        '<div style="border:2px solid #1d4ed8;border-radius:8px;padding:14px 18px;margin:0 0 24px">' +
-        '<h2 style="margin:0 0 8px;font-size:1.15em">' + TITLE + '</h2>' +
-        core.innerHTML +
+        '<div style="border:2px solid #1d4ed8;border-radius:8px;padding:14px 18px;margin:0 0 24px;background:#fff">' +
+        '<h2 style="margin:0 0 8px;font-size:1.15em">' + HEADING + '</h2>' +
+        inner +
         '</div>';
     } catch (e) {
-      /* 失敗してもリンクが残るので何もしない */
+      note('NG: parse', '#b91c1c');
     }
   };
+
   xhr.send();
 })();
 </script>

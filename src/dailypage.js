@@ -81,7 +81,7 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, heading) {
   return '<h2>' + heading + '　' + jpDate(date) + '</h2>' + blocks;
 }
 
-export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav = "", now }) {
+export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav = "", alert = "", now }) {
   const today = jstDate(now);
   const tomorrow = addDays(today, 1);
 
@@ -89,7 +89,7 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav
     title: '今日・明日の運航状況',
     body:
       nav +
-      '<div id="daily-core">' +
+      '<div id="daily-core">' + alert +
       '<p style="color:#555;font-size:0.9em">最終更新: ' + jst(now) + '</p>' +
       '<p>奄美大島に関係する航路の、今日と明日の発表をまとめています。' +
       '各社が発表した内容のみを掲載しており、発表がない便は平常運航の予定です。</p>' +

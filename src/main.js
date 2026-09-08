@@ -23,6 +23,7 @@ import { watchTyphoon } from './watchers/typhoon.js';
 import { buildTyphoonPage } from './typhoonpage.js';
 import { buildDailyPage } from './dailypage.js';
 import { buildNav, buildArticleNav } from './nav.js';
+import { buildTyphoonAlert } from './alert.js';
 import { BloggerPublisher, readCredentials } from './publisher.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -181,6 +182,12 @@ async function main() {
   // 初回はまだURLが無いため案内なしで作られ、次の実行から入る。
   const phaseRoutes = [...routeIds].map((id) => routeById[id]).filter(Boolean);
   const articleNav = buildArticleNav(pageIds);
+  // 台風の警告。毎回作り直すページにだけ入れる。
+  // 記事に入れると、台風が去った後も古い警報が残り続ける。
+  const typhoonAlert = buildTyphoonAlert({
+    typhoons: typhoonResult.typhoons,
+    url: pageIds.__typhoon?.url ?? null,
+  });
 
   for (const routeId of routeIds) {
     const route = routeById[routeId];
@@ -201,6 +208,7 @@ async function main() {
       notices: notices.filter((n) => n.route_id === routeId),
       now,
       nav: buildNav(pageIds, phaseRoutes, routeId),
+      alert: typhoonAlert,
       failThreshold: FAIL_THRESHOLD,
     });
 
@@ -230,6 +238,7 @@ async function main() {
       eventsByRoute: eventsByRouteAll,
       noticesByRoute,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
+      alert: typhoonAlert,
       now,
     });
     const r = await publisher.upsertPage(pageIds.__daily?.id ?? null, dailyPage);
