@@ -21,6 +21,7 @@ import { buildArticle } from './writer.js';
 import { buildStatusPage } from './statuspage.js';
 import { watchTyphoon } from './watchers/typhoon.js';
 import { buildTyphoonPage } from './typhoonpage.js';
+import { buildDailyPage } from './dailypage.js';
 import { BloggerPublisher, readCredentials } from './publisher.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -207,22 +208,41 @@ async function main() {
     }
   }
 
+  // 今日・明日の運航状況。全航路を横断した1枚。
+  const eventsByRouteAll = {};
+  for (const e of merged.values()) {
+    (eventsByRouteAll[e.route_id] ??= []).push(e);
+  }
+  const noticesByRoute = notices.reduce((acc, n) => {
+    (acc[n.route_id] ??= []).push(n);
+    return acc;
+  }, {});
+
+  try {
+    const dailyPage = buildDailyPage({
+      routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
+      eventsByRoute: eventsByRouteAll,
+      noticesByRoute,
+      now,
+    });
+    const r = await publisher.upsertPage(pageIds.__daily ?? null, dailyPage);
+    pageIds.__daily = r.id;
+    log('  今日・明日のまとめ更新');
+  } catch (err) {
+    log('  今日・明日のまとめの更新に失敗: ' + err.message);
+    notify.push('- 今日・明日のまとめの更新に失敗: ' + err.message);
+  }
+
   // 台風特設ページ。台風が無いときも「発生していない」と示すため常に更新する。
   try {
     const typhoons = typhoonResult.typhoons;
-    const eventsByRoute = {};
-    for (const e of merged.values()) {
-      (eventsByRoute[e.route_id] ??= []).push(e);
-    }
+    const eventsByRoute = eventsByRouteAll;
     const typhoonPage = buildTyphoonPage({
       typhoons,
       weather: weatherResult,
       routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
       eventsByRoute,
-      noticesByRoute: notices.reduce((acc, n) => {
-        (acc[n.route_id] ??= []).push(n);
-        return acc;
-      }, {}),
+      noticesByRoute,
       now,
     });
     const r = await publisher.upsertPage(pageIds.__typhoon ?? null, typhoonPage);
