@@ -18,7 +18,8 @@
     "node": ">=20"
   },
   "dependencies": {
-    "yaml": "^2.6.1",
-    "fast-xml-parser": "^4.5.1"
+    "fast-xml-parser": "^4.5.1",
+    "pdfjs-dist": "^6.3.289",
+    "yaml": "^2.6.1"
   }
 }
