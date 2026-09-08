@@ -36,6 +36,7 @@ operators:
 routes:
   - id: marue-main
     name: 鹿児島〜奄美〜沖縄（マルエーフェリー）
+    short: マルエーフェリー
     operator_id: marue
     enabled: true
     phase: 1
@@ -46,6 +47,7 @@ routes:
 
   - id: marix-main
     name: 鹿児島〜奄美〜沖縄（マリックスライン）
+    short: マリックスライン
     operator_id: marix
     enabled: true
     phase: 1
@@ -56,6 +58,7 @@ routes:
 
   - id: amamikaiun-kikai
     name: 鹿児島〜喜界〜名瀬〜古仁屋〜平土野〜知名（奄美海運）
+    short: 奄美海運
     operator_id: amamikaiun
     enabled: true
     phase: 1
@@ -70,9 +73,10 @@ routes:
 
   - id: setouchi-kakeroma
     name: 古仁屋〜加計呂麻島（フェリーかけろま）
+    short: 加計呂麻
     operator_id: setouchi
     enabled: true
-    phase: 2
+    phase: 3
     verified: false
     ships: [フェリーかけろま]
     ports: [古仁屋, 生間, 瀬相]
@@ -81,36 +85,31 @@ routes:
 
   - id: setouchi-setonami
     name: 古仁屋〜請島〜与路島（せとなみ）
+    short: 請・与路
     operator_id: setouchi
     enabled: true
-    phase: 2
+    phase: 3
     verified: false
     ships: [せとなみ]
     ports: [古仁屋, 請阿室, 池地, 与路]
     amami_ports: [古仁屋]
     notes: 寄港地名は公式時刻表で要確認
 
-  - id: kyodogumi-a
-    name: 共同組海運 Aコース（鹿児島〜名瀬〜徳之島〜喜界島）
+  - id: kyodogumi-main
+    name: 共同組海運（鹿児島〜奄美群島）
     operator_id: kyodogumi
+    short: 共同組海運
     enabled: true
     phase: 2
     verified: true
     ships: [みさきⅡ, つばさ]
-    ports: [鹿児島, 名瀬, 徳之島, 喜界島]
+    ports: [鹿児島, 名瀬, 徳之島, 喜界島, 沖永良部]
     amami_ports: [名瀬]
     cargo_only: true
-
-  - id: kyodogumi-b
-    name: 共同組海運 Bコース（鹿児島〜名瀬〜徳之島〜沖永良部）
-    operator_id: kyodogumi
-    enabled: true
-    phase: 2
-    verified: true
-    ships: [みさきⅡ, つばさ]
-    ports: [鹿児島, 名瀬, 徳之島, 沖永良部]
-    amami_ports: [名瀬]
-    cargo_only: true
+    notes: |
+      貨物船です。旅客は乗船できません。
+      Aコース（鹿児島〜名瀬〜徳之島〜喜界島）とBコース（鹿児島〜名瀬〜徳之島〜沖永良部）があります。
+      公式の発表はコースを区別していないため、まとめて掲載しています。
 
   - id: cruise-naze
     name: 名瀬港 クルーズ船寄港

@@ -25,9 +25,9 @@ export function buildNav(pages = {}, routes = [], current = null) {
   for (const route of routes) {
     const url = pages[route.id]?.url;
     if (!url) continue;
-    // 航路名は長いので、船社名の部分だけを出す
-    const m = route.name.match(/（(.+)）/);
-    items.push({ key: route.id, label: m ? m[1] : route.name, url });
+    // メニューは横に並ぶため、短い名前を使う。
+    // 航路名をそのまま出すと折り返して読みにくくなる。
+    items.push({ key: route.id, label: route.short ?? route.name, url });
   }
 
   if (items.length < 2) return '';

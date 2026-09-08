@@ -10,6 +10,7 @@ import { loadConfig, activeRouteIds } from './lib/config.js';
 loadEnvLocal();
 import { watchAline } from './watchers/aline.js';
 import { watchMarix } from './watchers/marix.js';
+import { watchKyodogumi } from './watchers/kyodogumi.js';
 import { watchWeather, decideMode, shouldRun } from './watchers/weather.js';
 import {
   readSnapshot, writeSnapshot, readEvents, latestEventsByKey, appendEvent,
@@ -37,6 +38,7 @@ const WATCHERS = {
   'aline-kagoshima-rss': watchAline,
   'aline-amami-rss': watchAline,
   'marix-service-rss': watchMarix,
+  'kyodogumi-html': watchKyodogumi,
 };
 
 const log = (...a) => console.log(...a);

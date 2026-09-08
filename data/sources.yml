@@ -139,7 +139,7 @@ sources:
   # ── 共同組海運（貨物）──────────────────────────────
   - id: kyodogumi-html
     operator_id: kyodogumi
-    route_ids: [kyodogumi-a, kyodogumi-b]
+    route_ids: [kyodogumi-main]
     type: html
     url: https://www.kyoudougumikaiun.co.jp/page1
     role: primary
@@ -149,6 +149,10 @@ sources:
     notes: |
       ホームページ内の「船舶動静」欄に運航予定・臨時便・ドック運休が掲載される。
       RSS等の構造化配信はなく、HTMLのパースが必要。
+      実装済み。日付に月が付かない（「7日（月）」）、1文に複数の日付が並び月は最初だけ
+      （「11月5日(木)10日(火)12日(木)」）、寄港地が島名で書かれる（「徳之島・沖永良部」）
+      という3つの癖があり、いずれも専用の処理で対応している。
+      月はページ内の更新日から補うため、更新日の記載が消えると日付を特定できなくなる。
 
   # ── 早期検知（集約サイト）──────────────────────────
   - id: norimono-info-kagoshima

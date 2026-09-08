@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import { loadConfig, activeRouteIds, ROOT } from './lib/config.js';
 import { watchAline } from './watchers/aline.js';
 import { watchMarix } from './watchers/marix.js';
+import { watchKyodogumi } from './watchers/kyodogumi.js';
 import { toCandidates, ongoingNotices } from './curator.js';
 import { buildPermalink } from './writer.js';
 import { classify, NOT_ARTICLE, STATUS_LABEL } from './lib/status.js';
@@ -35,6 +36,7 @@ const WATCHERS = {
   'aline-kagoshima-rss': watchAline,
   'aline-amami-rss': watchAline,
   'marix-service-rss': watchMarix,
+  'kyodogumi-html': watchKyodogumi,
 };
 
 function daysSince(iso, now) {
