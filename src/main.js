@@ -136,6 +136,27 @@ async function main() {
   const seeded = actions.filter((a) => a.type === 'seed');
   log('\n候補' + candidates.length + '件 → 新規' + created.length + ' / 続報' + updated.length + ' / 初回記録' + seeded.length);
 
+  // 記事にもメニューと台風の知らせを入れるため、投稿より先に用意する。
+  const pageIds = readPageIds();
+  // 案内は前回の実行で記録したURLから作る。
+  // 初回はまだURLが無いため案内なしで作られ、次の実行から入る。
+  const phaseRoutes = [...routeIds].map((id) => routeById[id]).filter(Boolean);
+  const articleNav = buildArticleNav(pageIds);
+  // 台風の警告。毎回作り直すページにだけ入れる。
+  // 記事に入れると、台風が去った後も古い警報が残り続ける。
+  const typhoonAlert = buildTyphoonAlert({
+    typhoons: typhoonResult.typhoons,
+    url: pageIds.__typhoon?.url ?? null,
+  });
+
+  // 掲載していない航路を明示する。読者が「発表がない＝平常運航」と
+  // 誤解するのが、情報を出さないことより悪い状態になる。
+  const scopeNotice = buildScopeNotice({
+    routes: cfg.routes,
+    routeIds,
+    operators: cfg.operators,
+  });
+
   const publisher = new BloggerPublisher({
     credentials: DRY_RUN || NO_PUBLISH ? {} : readCredentials(),
     dryRun: DRY_RUN || NO_PUBLISH,
@@ -180,25 +201,6 @@ async function main() {
     ...readEvents(),
     ...[...created, ...updated, ...seeded].map((a) => a.event),
   ]);
-  const pageIds = readPageIds();
-  // 案内は前回の実行で記録したURLから作る。
-  // 初回はまだURLが無いため案内なしで作られ、次の実行から入る。
-  const phaseRoutes = [...routeIds].map((id) => routeById[id]).filter(Boolean);
-  const articleNav = buildArticleNav(pageIds);
-  // 台風の警告。毎回作り直すページにだけ入れる。
-  // 記事に入れると、台風が去った後も古い警報が残り続ける。
-  const typhoonAlert = buildTyphoonAlert({
-    typhoons: typhoonResult.typhoons,
-    url: pageIds.__typhoon?.url ?? null,
-  });
-
-  // 掲載していない航路を明示する。読者が「発表がない＝平常運航」と
-  // 誤解するのが、情報を出さないことより悪い状態になる。
-  const scopeNotice = buildScopeNotice({
-    routes: cfg.routes,
-    routeIds,
-    operators: cfg.operators,
-  });
 
   for (const routeId of routeIds) {
     const route = routeById[routeId];
