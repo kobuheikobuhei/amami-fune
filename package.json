@@ -11,7 +11,8 @@
     "preview": "node src/tools/preview.js 3",
     "check:parse": "node src/tools/test-entries.js",
     "check:blog": "node src/tools/check-blog.js",
-    "get-token": "node src/tools/get-refresh-token.js"
+    "get-token": "node src/tools/get-refresh-token.js",
+    "audit": "node src/audit.js"
   },
   "engines": {
     "node": ">=20"

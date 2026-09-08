@@ -1,0 +1,92 @@
+name: 定期点検
+
+# 毎日 日本時間の22時30分に、公式の発表・台帳・ブログの3つを突き合わせる。
+# 収集が動いていても、分類や対応づけが壊れていれば情報は静かに欠落する。
+# 静かに欠落することが最も危険なので、毎日照合して食い違いを知らせる。
+on:
+  schedule:
+    - cron: '30 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MAIL_CONFIGURED: ${{ secrets.MAIL_USERNAME != '' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: 依存関係のインストール
+        run: npm install --no-audit --no-fund
+
+      - name: 点検
+        env:
+          BLOGGER_BLOG_ID: ${{ secrets.BLOGGER_BLOG_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          PHASE: ${{ vars.PHASE || '1' }}
+        run: node src/audit.js
+
+      - name: 点検結果の保存
+        run: |
+          git config user.name  "amami-fune-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add -A state/audit.md
+          if git diff --staged --quiet; then
+            echo "点検結果に変化なし"
+          else
+            git commit -m "audit: $(date -u +%Y-%m-%dT%H:%MZ) の点検結果"
+            git pull --rebase --autostash
+            git push
+          fi
+
+      - name: 食い違いの有無を判定
+        id: check
+        run: |
+          if [ -s state/audit.md ] && [ -n "$(tr -d '[:space:]' < state/audit.md)" ]; then
+            echo "send=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "send=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: メール通知
+        if: steps.check.outputs.send == 'true' && env.MAIL_CONFIGURED == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: 船舶動静ボット
+          to: ${{ secrets.MAIL_TO }}
+          subject: '[船舶動静] 定期点検で食い違いが見つかりました'
+          body: file://state/audit.md
+
+      - name: 点検そのものが失敗した場合の通知
+        if: failure() && env.MAIL_CONFIGURED == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: 船舶動静ボット
+          to: ${{ secrets.MAIL_TO }}
+          subject: '[船舶動静] 定期点検が失敗しました'
+          body: |
+            定期点検のジョブが異常終了しました。
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
