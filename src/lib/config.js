@@ -15,6 +15,7 @@ function loadYaml(relPath) {
 export function loadConfig() {
   const routes = loadYaml('data/routes.yml');
   const sources = loadYaml('data/sources.yml');
+  const timetables = loadYaml('data/timetable.yml');
 
   const userAgent = sources.user_agent
     .replace('<サイトURL>', process.env.SITE_URL || 'https://example.blogspot.com')
@@ -25,6 +26,7 @@ export function loadConfig() {
     operators: routes.operators,
     sources: sources.sources,
     referenceLinks: sources.reference_links ?? [],
+    timetables,
     userAgent,
   };
 }

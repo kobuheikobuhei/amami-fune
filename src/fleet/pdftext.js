@@ -71,3 +71,10 @@ export function alignToColumns(rowItems, columnXs, tolerance = 8) {
   }
   return out;
 }
+
+/** ページの文字を、行ごとに1本のテキストへ戻す。並びだけを見る解析に使う */
+export function toPlainText(page, tolerance = 3) {
+  return toRows(page.items, tolerance)
+    .map((r) => r.items.map((i) => i.text).join(' '))
+    .join('\n');
+}

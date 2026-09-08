@@ -26,7 +26,7 @@ import { toCandidates, ongoingNotices } from './curator.js';
 import { buildPermalink } from './writer.js';
 import { classify, NOT_ARTICLE, STATUS_LABEL } from './lib/status.js';
 import { jstDate } from './lib/text.js';
-import { readEvents, latestEventsByKey, readHealth } from './lib/state.js';
+import { readEvents, latestEventsByKey, readHealth, readFleet } from './lib/state.js';
 import { readCredentials, getAccessToken } from './publisher.js';
 
 const PHASE = Number(process.env.PHASE ?? 1);
@@ -196,6 +196,32 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
     }
   }
 
+  // ── 配船予定 ──
+  // 予定は静かに古くなる。取り直しが止まっても表示は残り、
+  // 昨日の船を今日の船として示し続けることになる。
+  const fleet = readFleet();
+  if (!fleet) {
+    add("要確認", "配船", "配船予定がまだ取得されていません", "state/fleet.json がありません");
+  } else {
+    const hours = (new Date(now) - new Date(fleet.checked_at)) / 36e5;
+    if (hours >= 26) {
+      add("重大", "配船", "配船予定が古くなっています",
+        Math.floor(hours) + "時間前の取得のまま更新されていません");
+    }
+    const covered = new Set((fleet.departures ?? []).map((d) => d.date));
+    const tomorrow = jstDate(new Date(new Date(now).getTime() + 86400000).toISOString());
+    // 出港の無い日はあるので、窓が届いているかだけを見る。
+    if (!fleet.to || fleet.to < tomorrow) {
+      add("重大", "配船", "配船予定が明日まで届いていません",
+        "取得できている範囲: " + fleet.from + " 〜 " + fleet.to);
+    }
+    for (const p of fleet.problems ?? []) {
+      add("重大", "配船", "配船予定の突き合わせで矛盾が出ています", p);
+    }
+    if (!covered.size) {
+      add("重大", "配船", "配船予定が1便も取れていません", "公式の読み取りが壊れている可能性があります");
+    }
+  }
   return { ...ctx, candidates, ledger, posts, findings };
 }
 

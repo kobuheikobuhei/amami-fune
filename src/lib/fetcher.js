@@ -63,3 +63,40 @@ export async function fetchText(url, { userAgent, timeoutMs = DEFAULT_TIMEOUT_MS
 
   throw lastError ?? new FetchError('取得失敗', { url });
 }
+
+/**
+ * URLを取得してバイト列を返す。PDFのように文字として読めないものに使う。
+ * 失敗の扱いは fetchText と揃える。
+ */
+export async function fetchBytes(url, { userAgent, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= RETRY_COUNT; attempt++) {
+    if (attempt > 0) await sleep(RETRY_WAIT_MS);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(url, {
+        headers: { 'User-Agent': userAgent, Accept: 'application/pdf, */*;q=0.8' },
+        signal: controller.signal,
+        redirect: 'follow',
+      });
+
+      if (!res.ok) {
+        lastError = new FetchError('HTTP ' + res.status, { url, status: res.status });
+        if (res.status >= 400 && res.status < 500) break;
+        continue;
+      }
+
+      return { bytes: new Uint8Array(await res.arrayBuffer()), fetchedAt: new Date().toISOString() };
+    } catch (err) {
+      lastError = new FetchError(err.name === 'AbortError' ? 'タイムアウト' : err.message, { url, cause: err });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  throw lastError ?? new FetchError('取得失敗', { url });
+}

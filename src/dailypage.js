@@ -1,4 +1,4 @@
-// 「今日・明日の運航状況」ページ。
+// 「運航状況」ページ。
 //
 // 常設ページは航路別に分かれているため、全社を横断して見る手段がなかった。
 // 「明日、どれかの船で渡れるか」を知りたい人が3枚を開かずに済むようにする。
@@ -8,6 +8,7 @@
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { jstDate } from './lib/text.js';
+import { buildFleetSection } from './fleetsection.js';
 
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 
@@ -60,7 +61,7 @@ function isShipLevel(e) {
   return /ドック|入渠|機関故障/.test(d) && !e.origin && !e.direction;
 }
 
-function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, heading) {
+function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, heading, fleetOperators = new Set()) {
   const blocks = routes.map((route) => {
     const all = eventsOn(eventsByRoute[route.id] ?? [], date);
     const ships = all.filter(isShipLevel);
@@ -96,18 +97,21 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, normal
         '<strong style="color:' + STATUS_COLOR[e.status] + '">' + label(e) + '</strong>' + link + '</li>';
     }).join('');
 
-    // 船の案内があるときは、便の有無を時刻表で確かめてもらう
-    // 船の案内があるときは、実際に便があるかを読者が確かめられるようにする。
-    // 時刻表は「何時発か」、配船予定は「どの船が動くか」で、必要なのは後者。
-    // 船の案内があるときは、実際に便があるかを読者が確かめられるようにする。
+    // 配船が分からない航路のために、公式の時刻表への案内を用意する。
     // PDFへ直接ではなく、それが置かれているページへ案内する。
     // PDFのURLはハッシュ値で、差し替えられればリンクが切れるため。
     const links = (op?.references ?? []).map((r) =>
       '<a href="' + r.url + '" target="_blank" rel="noopener">' + r.label + '</a>');
 
-    const scheduleHint = (shipItems || noticeItems) && links.length
-      ? '<p style="font-size:0.92em;color:#555;margin:2px 0 12px;line-height:1.9">' +
-        'どの船が動く予定かは ' + links.join('　') + ' でご確認ください。</p>'
+    // 船の案内があるときは、その日の便を誰が担うのかを示す。
+    // 配船が分かっている航路は、このページの「現在の運航」に当日の船が出ている。
+    const known = fleetOperators.has(route.operator_id);
+    const hintText = known
+      ? 'ドック入りの船があっても、別の船が同じ便を担うことがあります。当日の船は上の「現在の運航」をご覧ください。'
+      : 'どの船が動く予定かは ' + links.join('　') + ' でご確認ください。';
+
+    const scheduleHint = (shipItems || noticeItems) && (known || links.length)
+      ? '<p style="font-size:0.92em;color:#555;margin:2px 0 12px;line-height:1.9">' + hintText + '</p>'
       : '';
 
     const body = (noticeItems || shipItems || normalItems || serviceItems)
@@ -121,18 +125,26 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, normal
   return '<h2 style="margin:22px 0 8px">' + heading + '　' + jpDate(date) + '</h2>' + blocks;
 }
 
-export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, operators = {}, normalByRoute = {}, nav = "", alert = "", scope = "", now }) {
+export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, operators = {}, normalByRoute = {}, fleet = null, nav = "", alert = "", scope = "", now }) {
   const today = jstDate(now);
   const tomorrow = addDays(today, 1);
+  // 配船が分かっている運航会社。案内の書き方を変えるために使う。
+  const fleetOperators = new Set((fleet?.voyages ?? []).map((v) => v.operator_id));
 
   return {
-    title: '今日・明日の運航状況',
+    title: '運航状況',
     body:
       nav +
       '<div id="daily-core">' + alert +
       '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '</p>' +
-      dayBlock(today, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, '今日') +
-      dayBlock(tomorrow, routes, eventsByRoute, {}, operators, normalByRoute, '明日') +
+      buildFleetSection({
+        fleet,
+        now,
+        events: Object.values(eventsByRoute).flat(),
+        labelOf: (e) => label(e) + 'の発表があります',
+      }) +
+      dayBlock(today, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, '今日', fleetOperators) +
+      dayBlock(tomorrow, routes, eventsByRoute, {}, operators, normalByRoute, '明日', fleetOperators) +
       '<p style="color:#555;font-size:0.9em">翌日の運航可否は、前日の夕方から夜にかけて発表されることが多くなっています。' +
       'まだ発表がない場合は、時間をおいて再度ご確認ください。</p>' +
       scope +

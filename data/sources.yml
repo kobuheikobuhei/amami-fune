@@ -227,21 +227,48 @@ sources:
 # 運航会社の公式発表という位置づけも曖昧になる。
 # 読者には各運航会社の公式ページのみを案内する。
 
+# 配船予定（どの船がいつ鹿児島を出るか）
+#
+# 「船のドック入り」と「便の運休」は別物で、ドック中の船の便は別の船が担う。
+# それを読者に伝えるには、日付ごとの配船が要る。
+#
+# 使うのは各社が自ら出しているものだけ。第一海運の配船予定表は
+# 突き合わせの参考にとどめ、読者には案内しない。
 fleet_schedules:
-  - operator: marix
-    label: 年間運航スケジュール（2026年度）
-    page: https://marixline.com/price_schedule/#timetable
-    note: PDFのURLはハッシュ値のため、毎回ページから探す必要がある
   - operator: marue
-    label: 2026年 年間スケジュール
+    label: 2026年度 運航スケジュール（鹿児島航路）
     page: https://www.aline-ferry.com/kagoshima/time/
-    note: 同上。記号表のため解析は難しい
+    kind: pdf
+    role: primary
+    note: |
+      記号の表。●が鹿児島発、○が那覇発、入が入渠。
+      PDFのURLはハッシュ値のため毎回ページから探す。
+      文字を順に取り出すと空欄が失われて日付とずれるため、座標で列に割り当てる。
+  - operator: marix
+    label: 時刻表と運賃を検索
+    page: https://marixline.com/price_schedule/
+    kind: form
+    role: primary
+    note: |
+      日付と区間を送ると、その日の時刻表と「運航予定の船」を返す。
+      運航しない日は時刻表を返さない。会社自身が日付ごとに公表している。
+      相手先への負荷を避けるため、呼ぶのは1日1回・必要な日数だけにする。
+  - operator: marue
+    label: 2026年度 運航スケジュール（鹿児島航路）／上期
+    page: https://www.aline-ferry.com/kagoshima/time/
+    kind: pdf
+    role: reference
+    note: |
+      4隻（あけぼの・波之上・きかい・あまみ）の鹿児島発日と、両航路の公式時刻を1枚に載せる。
+      時刻の裏付けに使った。上期・下期で分かれるため、自動処理の土台にはしていない。
   - operator: multi
     label: 配船予定表（第一海運・月次）
     page: https://www.daiichikaiun.co.jp/
-    url_pattern: https://www.daiichikaiun.co.jp/wordpress/wp-content/uploads/YYYY/MM/YYYYMM-1.pdf
-    note: マルエーと奄美海運の全船を1枚に。便番号とドック・運休も明記される
-
+    kind: pdf
+    role: internal
+    note: |
+      マルエーと奄美海運の全船を1枚に。便番号とドック・運休も明記される。
+      内部の確認にのみ使い、読者には案内しない（運航会社自身の発表ではないため）。
 reference_links:
   - label: JAL・JAC 運航状況
     url: https://www.jal.co.jp/jp/ja/dom/status/

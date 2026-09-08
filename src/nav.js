@@ -5,7 +5,7 @@
 // 古い情報だけを持ち帰ることになる。全てのページと記事の先頭に置く。
 
 const ORDER = [
-  { key: '__daily', label: '今日・明日の運航状況' },
+  { key: '__daily', label: '運航状況' },
   { key: '__typhoon', label: '台風情報' },
 ];
 
@@ -52,6 +52,6 @@ export function buildArticleNav(pages = {}) {
   return '<p style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;' +
     'padding:8px 12px;margin:0 0 16px;font-size:0.95em">' +
     'この記事は発表時点の内容です。最新の状況は' +
-    '<a href="' + daily + '" style="color:#1d4ed8">今日・明日の運航状況</a>' +
+    '<a href="' + daily + '" style="color:#1d4ed8">運航状況</a>' +
     'でご確認ください。</p>';
 }

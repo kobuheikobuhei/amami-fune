@@ -16,6 +16,7 @@ import {
   readSnapshot, writeSnapshot, readEvents, latestEventsByKey, appendEvent,
   readHealth, writeHealth, recordSuccess, recordFailure,
   readMode, writeMode, readPageIds, writePageIds, writeNotification, writeDiagnostics,
+  readFleet, writeFleet,
 } from './lib/state.js';
 import { toCandidates, diffAgainstLedger, publishDecision, ongoingNotices, normalShips } from './curator.js';
 import { buildArticle } from './writer.js';
@@ -23,6 +24,8 @@ import { buildStatusPage } from './statuspage.js';
 import { watchTyphoon } from './watchers/typhoon.js';
 import { buildTyphoonPage } from './typhoonpage.js';
 import { buildDailyPage } from './dailypage.js';
+import { fetchFleet, shouldRefresh } from './fleet/index.js';
+import { buildVoyages } from './fleet/voyages.js';
 import { buildNav, buildArticleNav } from './nav.js';
 import { buildTyphoonAlert } from './alert.js';
 import { buildScopeNotice } from './scope.js';
@@ -245,15 +248,49 @@ async function main() {
     }
   }
 
-  // 今日・明日の運航状況。全航路を横断した1枚。
+  // 運航状況。全航路を横断した1枚。
   const eventsByRouteAll = {};
   for (const e of merged.values()) {
-    (eventsByRouteAll[e.route_id] ??= []).push(e);
+    (eventsByRouteAll[e.route_id] ??= []).push({
+      ...e,
+      operator_id: routeById[e.route_id]?.operator_id ?? null,
+    });
   }
   const noticesByRoute = notices.reduce((acc, n) => {
     (acc[n.route_id] ??= []).push(n);
     return acc;
   }, {});
+
+  // 配船予定。どの船が実際に動いているかを示す土台になる。
+  // 両社の公式サイトへ毎回問い合わせないよう、取得した結果を保存して使い回す。
+  let fleet = readFleet();
+  if (shouldRefresh(fleet, now)) {
+    try {
+      const fetched = await fetchFleet({ userAgent: cfg.userAgent, now });
+      if (fetched.problems.length) {
+        // 突き合わせで矛盾が出たら、読み取りが壊れている。
+        // もっともらしい誤った予定を載せるのは、載せないより有害。
+        log("  配船予定に矛盾: " + fetched.problems.join(" / "));
+        notify.push("- 配船予定の突き合わせで矛盾: " + fetched.problems.join(" / "));
+        fleet = { ...fetched, departures: [] };
+      } else {
+        fleet = fetched;
+        log("  配船予定を更新: " + fetched.departures.length + "便（" + fetched.from + "〜" + fetched.to + "）");
+      }
+    } catch (err) {
+      log("  配船予定の取得に失敗: " + err.message);
+      notify.push("- 配船予定の取得に失敗: " + err.message);
+    }
+  }
+
+  const downTimetable = cfg.timetables.kagoshima_okinawa_down;
+  const fleetView = fleet?.departures?.length
+    ? {
+        ...fleet,
+        voyages: buildVoyages(fleet.departures, downTimetable),
+        links: downTimetable.sources,
+      }
+    : null;
 
   try {
     const dailyPage = buildDailyPage({
@@ -262,6 +299,7 @@ async function main() {
       noticesByRoute,
       operators: cfg.operators,
       normalByRoute,
+      fleet: fleetView,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
       scope: scopeNotice,
       alert: typhoonAlert,
@@ -269,10 +307,10 @@ async function main() {
     });
     const r = await publisher.upsertPage(pageIds.__daily?.id ?? null, dailyPage);
     pageIds.__daily = { id: r.id, url: r.url ?? pageIds.__daily?.url ?? null };
-    log('  今日・明日のまとめ更新');
+    log('  運航状況ページ更新');
   } catch (err) {
-    log('  今日・明日のまとめの更新に失敗: ' + err.message);
-    notify.push('- 今日・明日のまとめの更新に失敗: ' + err.message);
+    log('  運航状況ページの更新に失敗: ' + err.message);
+    notify.push('- 運航状況ページの更新に失敗: ' + err.message);
   }
 
   // 台風特設ページ。台風が無いときも「発生していない」と示すため常に更新する。
@@ -305,12 +343,14 @@ async function main() {
       updated: updated.length,
       seeded: seeded.length,
       status_pages: Object.keys(pageIds).length,
+      fleet_departures: fleet?.departures?.length ?? 0,
       notifications: notify.length,
     };
     writeDiagnostics(diagnostics);
     for (const a of [...created, ...updated, ...seeded]) appendEvent(a.event);
     writeHealth(health);
     writeMode(mode);
+    if (fleet) writeFleet(fleet);
     writePageIds(pageIds);
     writeNotification(notify.length ? ['# 船舶動静ボット 通知 (' + now + ')', '', ...notify] : []);
   }

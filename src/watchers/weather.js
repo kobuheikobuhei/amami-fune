@@ -114,7 +114,7 @@ export function shouldRun(mode, previousLastRun, now) {
   if (!previousLastRun) return true;
 
   // 日本時間の日付が変わったら、間隔に関わらず必ず収集する。
-  // 「今日・明日の運航状況」は日付をまたいだ瞬間に中身が変わるべきもので、
+  // 「運航状況」ページは日付をまたいだ瞬間に中身が変わるべきもので、
   // 間引くと日付が変わっても前日のままになる。
   // 実際、23時55分に収集した翌日は、0時50分ごろまで前日の表示が残っていた。
   if (jstDate(now) !== jstDate(previousLastRun)) return true;

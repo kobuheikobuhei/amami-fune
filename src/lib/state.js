@@ -146,3 +146,17 @@ export function writeNotification(lines) {
   const body = lines.length ? lines.join(String.fromCharCode(10)) + String.fromCharCode(10) : '';
   writeFileSync(NOTIFY_PATH, body, 'utf8');
 }
+
+// ── 配船予定 ────────────────────────────────────
+// 両社の公式から取った「どの船がいつ鹿児島を出るか」。
+// 相手先への負荷を避けるため取り直す間隔を空け、その間はここから読む。
+
+const FLEET_PATH = join(STATE_DIR, 'fleet.json');
+
+export function readFleet() {
+  return readJson(FLEET_PATH, null);
+}
+
+export function writeFleet(data) {
+  writeJson(FLEET_PATH, data);
+}

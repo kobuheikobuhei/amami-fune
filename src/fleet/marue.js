@@ -8,13 +8,14 @@
 //
 // 出典: マルエーフェリー株式会社
 
+import { fetchText, fetchBytes } from '../lib/fetcher.js';
 import { extractItems, toRows, alignToColumns } from './pdftext.js';
 
 const PAGE = 'https://www.aline-ferry.com/kagoshima/time/';
 const SHIPS = ['フェリーあけぼの', 'フェリー波之上'];
 
 /** ページから年間スケジュールのPDFのURLを探す。URLはハッシュ値で固定できない */
-export async function findPdfUrl(fetchText, { userAgent }) {
+export async function findPdfUrl({ userAgent }) {
   const { body } = await fetchText(PAGE, { userAgent });
   for (const m of body.matchAll(/<a[^>]+href="([^"]+\.pdf[^"]*)"[^>]*>([\s\S]{0,80}?)<\/a>/gi)) {
     const text = m[2].replace(/<[^>]+>/g, '');
@@ -34,24 +35,27 @@ const SYMBOL = {
 
 /**
  * 年度分の配船を読み取る。
- * 月ごとに「日付・月名・曜日・船1・船2」の5行が並ぶ。
+ * 月ごとに「日付・月名・曜日・船1・船2」の行が並ぶ。
+ *
+ * 年は表題の「２０２６年度」から取る。実行時の年から推測すると、
+ * 年度末に前年度の表を読んで1年ずれるため。
  */
 export async function parseSchedule(pdfBytes) {
   const pages = await extractItems(pdfBytes);
   const rows = toRows(pages[0].items);
+  const texts = rows.map((r) => toHalf(r.items.map((i) => i.text).join('')));
+
+  const fiscalYear = Number(texts.find((t) => /20\d\d年度/.test(t))?.match(/(20\d\d)年度/)?.[1]);
+  if (!Number.isFinite(fiscalYear)) throw new Error('年度が読み取れません');
 
   // 月の見出しの位置を拾う。年度は4月始まりで、1月から翌年になる。
   const months = [];
-  rows.forEach((r, index) => {
-    const t = toHalf(r.items.map((i) => i.text).join(''));
+  texts.forEach((t, index) => {
     const m = t.match(/^(\d{1,2})月$/);
     if (m) months.push({ month: Number(m[1]), index });
   });
 
   const out = [];
-  let year = null;
-  let prevMonth = null;
-
   for (const { month, index } of months) {
     // 日付の見出しは月名の1行前
     const dayRow = rows[index - 1];
@@ -59,11 +63,7 @@ export async function parseSchedule(pdfBytes) {
     const days = dayRow.items.map((i) => Number(toHalf(i.text))).filter(Number.isFinite);
     if (!days.length) continue;
     const cols = dayRow.items.map((i) => i.x);
-
-    // 年度は4月始まり。月が戻ったら翌年へ。
-    if (year === null) year = 2000 + Number(String(new Date().getFullYear()).slice(2));
-    if (prevMonth !== null && month < prevMonth) year += 1;
-    prevMonth = month;
+    const year = month >= 4 ? fiscalYear : fiscalYear + 1;
 
     for (const ship of SHIPS) {
       const shipRow = rows.slice(index + 1, index + 4)
@@ -88,13 +88,10 @@ export async function parseSchedule(pdfBytes) {
   return out;
 }
 
-/** 年度の始まりの年を、表そのものから決められない場合に補正する */
-export function withFiscalYear(schedule, startYear) {
-  let year = startYear;
-  let prev = null;
-  return schedule.map((s) => {
-    if (prev !== null && s.month < prev) year += 1;
-    prev = s.month;
-    return { ...s, year };
-  });
+/** 公式ページからPDFを探して読み取るところまでを一度に行う */
+export async function fetchSchedule({ userAgent }) {
+  const url = await findPdfUrl({ userAgent });
+  if (!url) throw new Error('年間スケジュールのPDFが見つかりません');
+  const { bytes } = await fetchBytes(url, { userAgent });
+  return { url, schedule: await parseSchedule(bytes) };
 }

@@ -10,7 +10,8 @@
 //
 // 出典: マリックスライン株式会社
 
-import { fetchText } from '../lib/fetcher.js';
+import { fetchText, fetchBytes } from '../lib/fetcher.js';
+import { extractItems, toPlainText } from './pdftext.js';
 
 const PAGE = 'https://marixline.com/price_schedule/';
 const SHIPS = ['クイーンコーラルプラス', 'クイーンコーラルクロス'];
@@ -108,4 +109,13 @@ export function sparseMonths(schedule, threshold = 5) {
   return schedule
     .filter((s) => s.days.length > 0 && s.days.length < threshold)
     .map((s) => ({ ...s, reason: '出港日が' + s.days.length + '日分のみ（ドック期間の可能性）' }));
+}
+/** 公式ページからPDFを探して読み取るところまでを一度に行う */
+export async function fetchSchedule({ userAgent }) {
+  const url = await findPdfUrl({ userAgent });
+  if (!url) throw new Error('年間運航スケジュールのPDFが見つかりません');
+  const { bytes } = await fetchBytes(url, { userAgent });
+  const pages = await extractItems(bytes);
+  const text = pages.map((p) => toPlainText(p)).join('\n');
+  return { url, schedule: parseSchedule(text) };
 }
