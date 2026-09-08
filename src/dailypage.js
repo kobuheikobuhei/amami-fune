@@ -88,7 +88,9 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav
   return {
     title: '今日・明日の運航状況',
     body:
-      nav + '<p style="color:#555;font-size:0.9em">最終更新: ' + jst(now) + '</p>' +
+      nav +
+      '<div id="daily-core">' +
+      '<p style="color:#555;font-size:0.9em">最終更新: ' + jst(now) + '</p>' +
       '<p>奄美大島に関係する航路の、今日と明日の発表をまとめています。' +
       '各社が発表した内容のみを掲載しており、発表がない便は平常運航の予定です。</p>' +
       dayBlock(today, routes, eventsByRoute, noticesByRoute, '今日') +
@@ -96,6 +98,7 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav
       '<p style="color:#555;font-size:0.9em">翌日の運航可否は、前日の夕方から夜にかけて発表されることが多くなっています。' +
       'まだ発表がない場合は、時間をおいて再度ご確認ください。</p>' +
       '<hr>' +
-      '<p style="font-size:0.9em;color:#555">' + DISCLAIMER + '</p>',
+      '<p style="font-size:0.9em;color:#555">' + DISCLAIMER + '</p>' +
+      '</div>',
   };
 }

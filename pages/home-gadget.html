@@ -1,0 +1,45 @@
+<div id="amami-daily">
+  <p style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin:0 0 16px">
+    <a href="https://amami-fune.blogspot.com/p/blog-page_578.html" style="color:#1d4ed8;font-weight:bold;text-decoration:none">今日・明日の運航状況を見る</a>
+  </p>
+</div>
+
+<script>
+/* 今日・明日の運航状況を、このブログのページから読み込んで表示する。
+   読み込めなかった場合は、上のリンクがそのまま残る。 */
+(function () {
+  var TITLE = '今日・明日の運航状況';
+  var box = document.getElementById('amami-daily');
+  if (!box) return;
+
+  var url = '/feeds/pages/default?alt=json&max-results=50';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState !== 4 || xhr.status !== 200) return;
+    try {
+      var data = JSON.parse(xhr.responseText);
+      var entries = (data.feed && data.feed.entry) || [];
+      var target = null;
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].title && entries[i].title.$t === TITLE) { target = entries[i]; break; }
+      }
+      if (!target || !target.content) return;
+
+      var holder = document.createElement('div');
+      holder.innerHTML = target.content.$t;
+      var core = holder.querySelector('#daily-core');
+      if (!core) return;
+
+      box.innerHTML =
+        '<div style="border:2px solid #1d4ed8;border-radius:8px;padding:14px 18px;margin:0 0 24px">' +
+        '<h2 style="margin:0 0 8px;font-size:1.15em">' + TITLE + '</h2>' +
+        core.innerHTML +
+        '</div>';
+    } catch (e) {
+      /* 失敗してもリンクが残るので何もしない */
+    }
+  };
+  xhr.send();
+})();
+</script>
