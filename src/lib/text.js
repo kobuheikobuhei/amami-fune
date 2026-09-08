@@ -3,7 +3,11 @@
 /** HTMLをプレーンテキストへ。改行は保持する */
 export function htmlToText(html) {
   if (!html) return '';
-  return String(html)
+  const stripped = String(html)
+    .replace(new RegExp('<script[^]*?</script>', 'gi'), ' ')
+    .replace(new RegExp('<style[^]*?</style>', 'gi'), ' ');
+
+  return stripped
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n')
     .replace(/<[^>]+>/g, '')
