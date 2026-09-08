@@ -10,18 +10,29 @@
 
 import { NAZE } from './watchers/typhoon.js';
 
-/** 名瀬港からこの距離までを「発生中」として知らせる */
-const ALERT_KM = 1200;
+// 知らせる距離。台風と熱帯低気圧で変える。
+// 熱帯低気圧は勢力が弱く、遠方のものまで知らせると警告の意味が薄れる。
+const ALERT_KM_TYPHOON = 1200;
+const ALERT_KM_TD = 800;
+
+/** 気象庁の階級が台風に達しているか（強い台風・非常に強い台風なども含む） */
+function isTyphoon(t) {
+  return /台風/.test(t.category ?? '');
+}
 
 export function buildTyphoonAlert({ typhoons = [], url = null } = {}) {
-  const active = typhoons.filter(
-    (t) => t.distanceKm === null || t.distanceKm <= ALERT_KM
-  );
+  const active = typhoons.filter((t) => {
+    if (t.distanceKm === null) return true;
+    return t.distanceKm <= (isTyphoon(t) ? ALERT_KM_TYPHOON : ALERT_KM_TD);
+  });
   if (!active.length || !url) return '';
 
-  const nearest = active
-    .filter((t) => t.distanceKm !== null)
-    .sort((a, b) => a.distanceKm - b.distanceKm)[0] ?? active[0];
+  // 台風があるならその中から選ぶ。見出しが「台風」なのに
+  // 名前の欄が熱帯低気圧になっていると、読者が取り違える。
+  const pool = active.some(isTyphoon) ? active.filter(isTyphoon) : active;
+  const withDistance = pool.filter((t) => t.distanceKm !== null);
+  withDistance.sort((a, b) => a.distanceKm - b.distanceKm);
+  const nearest = withDistance[0] ?? pool[0];
 
   const name = [
     nearest.category,
@@ -35,10 +46,17 @@ export function buildTyphoonAlert({ typhoons = [], url = null } = {}) {
 
   const others = active.length > 1 ? '　ほか' + (active.length - 1) + '件' : '';
 
+  // 見出しは実際の階級に合わせる。
+  // 熱帯低気圧なのに「台風が発生しています」と書くと、
+  // すぐ下の階級の表示と矛盾し、読者を誤らせる。
+  const headline = active.some(isTyphoon)
+    ? '台風が発生しています'
+    : '熱帯低気圧が発生しています';
+
   return '<div style="border:2px solid #dc2626;background:#fef2f2;border-radius:8px;' +
     'padding:12px 16px;margin:0 0 18px">' +
     '<div style="color:#b91c1c;font-weight:bold;font-size:1.05em;margin-bottom:4px">' +
-    '台風が発生しています</div>' +
+    headline + '</div>' +
     '<div style="color:#7f1d1d">' + name + others +
     (where ? '<br><span style="font-size:0.95em">' + where + '</span>' : '') +
     '</div>' +
