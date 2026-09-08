@@ -35,8 +35,8 @@ export function buildNav(pages = {}, routes = [], current = null) {
   const links = items
     .map((it) =>
       it.key === current
-        ? '<span style="color:#111;font-weight:bold">' + it.label + '</span>'
-        : '<a href="' + it.url + '" style="color:#1d4ed8;text-decoration:none">' + it.label + '</a>'
+        ? '<span style="display:inline-block;padding:4px 8px;color:#111;font-weight:bold">' + it.label + '</span>'
+        : '<a href="' + it.url + '" style="display:inline-block;padding:4px 8px;color:#1d4ed8;text-decoration:none">' + it.label + '</a>'
     )
     .join('<span style="color:#cbd5e1"> ｜ </span>');
 

@@ -5,6 +5,7 @@
 // こちら側の言葉で組み立て、根拠として公式リンクを必ず添える。
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
+import { field, chip, card, portChain, COLOR } from './style.js';
 
 const OPERATOR_LABEL = {
   marue: 'マルエーフェリー',
@@ -228,43 +229,43 @@ export function buildBody(event, { route, correction = null, nav = "" }) {
   const op = OPERATOR_LABEL[event.operator_id] ?? event.operator_id;
   const statusLabel = STATUS_LABEL[event.status];
   const detailWord = detailText(event);
-  const detail = detailWord && detailWord !== statusLabel ? `（${detailWord}）` : '';
   const color = STATUS_COLOR[event.status];
-
-  const facts = [
-    [event.service_date_end && event.service_date_end !== event.service_date ? '対象期間' : '運航日',
-     periodLong(event)],
-    ['状態', `${statusLabel}${detail}`],
-    ['船社', op],
-    event.ship ? ['船名', event.ship] : null,
-    event.origin ? ['出発港', event.origin] : null,
-    event.direction ? ['方向', DIRECTION_LABEL[event.direction]] : null,
-  ].filter(Boolean);
-
-  const table = facts
-    .map(([k, v]) => `<tr><th style="text-align:left;padding:4px 12px 4px 0;white-space:nowrap">${k}</th><td style="padding:4px 0">${v}</td></tr>`)
-    .join('\n');
+  const isPeriod = event.service_date_end && event.service_date_end !== event.service_date;
 
   const correctionBlock = correction
-    ? `<p style="color:#dc2626;font-weight:bold">【訂正】${correction}</p>\n`
+    ? '<p style="color:#dc2626;font-weight:bold">【訂正】' + correction + '</p>'
     : '';
 
-  return `${nav}${correctionBlock}<p style="border-left:6px solid ${color};padding:8px 12px;margin:0 0 16px">
-<strong>${periodLong(event)}</strong> の ${op}${event.ship ? `「${event.ship}」` : ''} は
-<strong style="color:${color}">${statusLabel}</strong>${detail} です。
-</p>
+  // 結論を最初に置く。携帯では画面に入る範囲が狭いため、
+  // 状態と対象の便が一目で分かるようにする。
+  const lead = card(
+    '<div style="margin-bottom:6px">' + chip(detailWord ?? statusLabel, color) + '</div>' +
+    '<div style="font-size:1.05em;font-weight:600;line-height:1.6">' +
+    periodLong(event) + '</div>' +
+    '<div style="color:#374151;margin-top:4px;overflow-wrap:anywhere">' +
+    op + (event.ship ? '「' + event.ship + '」' : '') + '</div>',
+    color
+  );
 
-<table style="border-collapse:collapse;margin-bottom:16px">
-${table}
-</table>
+  const facts =
+    field(isPeriod ? '対象期間' : '運航日', periodLong(event)) +
+    field('状態', detailWord && detailWord !== statusLabel ? statusLabel + '（' + detailWord + '）' : statusLabel) +
+    field('船社', op) +
+    field('船名', event.ship) +
+    field('出発港', event.origin) +
+    field('方向', DIRECTION_LABEL[event.direction]);
 
-${routeSection(event, route)}${relatedSection(event)}<h3>公式発表</h3>
-<p><a href="${event.source_url}" target="_blank" rel="noopener">${event.source_title}（${op} 公式）</a></p>
-
-${revisionHistory(event)}
-
-<hr>
-<p style="font-size:0.9em;color:#555">${DISCLAIMER}</p>`;
+  return nav + correctionBlock + lead +
+    facts +
+    routeSection(event, route) +
+    relatedSection(event) +
+    '<h3>公式発表</h3>' +
+    '<p><a href="' + event.source_url + '" target="_blank" rel="noopener" ' +
+    'style="color:' + COLOR.link + ';font-weight:600">' + event.source_title +
+    '（' + op + ' 公式）</a></p>' +
+    revisionHistory(event) +
+    '<hr>' +
+    '<p style="font-size:0.9em;color:#555;line-height:1.7">' + DISCLAIMER + '</p>';
 }
 
 export function buildArticle(event, { route, correction = null, nav = "" }) {
@@ -284,48 +285,42 @@ export function buildArticle(event, { route, correction = null, nav = "" }) {
  * どこを回る船なのかが分からないと、読者は自分の行き先が関係するか判断できない。
  * 影響のある港が分かっている場合は、その並びの中で目立たせる。
  */
+/**
+ * 航路の寄港地を並べて示す。
+ *
+ * 公式サイトは船名の直下に必ず航路を表示している。
+ * どこを回る船なのかが分からないと、読者は自分の行き先が関係するか判断できない。
+ * 影響のある港が分かっている場合は、その並びの中で目立たせる。
+ *
+ * 携帯では横一列に収まらないため、折り返せる作りにしている。
+ */
 function routeSection(event, route) {
   const ports = route?.ports ?? [];
   if (!ports.length) return '';
 
-  // 上り便は逆順にたどる
-  const ordered = event.direction === 'up' ? [...ports].reverse() : [...ports];
+  const ordered = event.direction === "up" ? [...ports].reverse() : [...ports];
 
-  const marked = new Map();
+  const marks = {};
   for (const n of event.port_notes ?? []) {
-    for (const p of n.ports) if (!marked.has(p)) marked.set(p, n.kind);
+    for (const p of n.ports) if (!marks[p]) marks[p] = n.kind;
   }
 
-  const KIND_COLOR = { conditional: '#d97706', no_call: '#dc2626', changed: '#d97706' };
-  const KIND_MARK = { conditional: '※', no_call: '×', changed: '※' };
-
-  const chain = ordered
-    .map((p) => {
-      const kind = marked.get(p);
-      if (!kind) return p;
-      const color = KIND_COLOR[kind] ?? '#d97706';
-      return '<strong style="color:' + color + '">' + p + (KIND_MARK[kind] ?? '') + '</strong>';
-    })
-    .join(' － ');
+  const legend = (event.port_notes ?? []).map((n) => {
+    const list = n.ports.join('・');
+    if (n.kind === 'no_call') {
+      return '<li><span style="color:#dc2626">×</span> <strong>' + list + '</strong> には寄港しません</li>';
+    }
+    if (n.kind === 'conditional') {
+      return '<li><span style="color:#d97706">※</span> <strong>' + list +
+        '</strong> は条件付き寄港です（抜港・港の変更・入出港時刻の変更が生じる場合があります）</li>';
+    }
+    return '<li><span style="color:#d97706">※</span> <strong>' + list + '</strong> は寄港地が変更される場合があります</li>';
+  }).join('');
 
   const dirLabel = event.direction ? '（' + DIRECTION_LABEL[event.direction] + '）' : '';
 
-  const legend = (event.port_notes ?? [])
-    .map((n) => {
-      const list = n.ports.join('・');
-      if (n.kind === 'no_call') {
-        return '<li><span style="color:#dc2626">×</span> <strong>' + list + '</strong> には寄港しません</li>';
-      }
-      if (n.kind === 'conditional') {
-        return '<li><span style="color:#d97706">※</span> <strong>' + list +
-          '</strong> は条件付き寄港です（抜港・港の変更・入出港時刻の変更が生じる場合があります）</li>';
-      }
-      return '<li><span style="color:#d97706">※</span> <strong>' + list + '</strong> は寄港地が変更される場合があります</li>';
-    })
-    .join('');
-
-  return '<h3>航路</h3>' +
-    '<p style="line-height:2">' + chain + dirLabel + '</p>' +
-    (legend ? '<ul>' + legend + '</ul>' : '') +
-    '<p style="font-size:0.9em;color:#555">平常時の寄港地です。実際の寄港は公式発表をご確認ください。</p>';
+  return '<h3>航路' + dirLabel + '</h3>' +
+    portChain(ordered, marks) +
+    (legend ? '<ul style="line-height:1.9">' + legend + '</ul>' : '') +
+    '<p style="font-size:0.9em;color:#555;line-height:1.7">平常時の寄港地です。実際の寄港は公式発表をご確認ください。</p>';
 }

@@ -72,13 +72,13 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, heading) {
     }).join('');
 
     const body = noticeItems + items
-      ? '<ul style="margin:4px 0 12px">' + noticeItems + items + '</ul>'
-      : '<p style="color:#6b7280;margin:4px 0 12px">発表はありません</p>';
+      ? '<ul style="margin:4px 0 14px;line-height:2.1;padding-left:1.3em">' + noticeItems + items + '</ul>'
+      : '<p style="color:#6b7280;margin:4px 0 14px">発表はありません</p>';
 
-    return '<div style="margin-bottom:4px"><strong>' + route.name + '</strong>' + body + '</div>';
+    return '<div style="margin-bottom:6px"><strong style="font-size:1.05em">' + route.name + '</strong>' + body + '</div>';
   }).join('');
 
-  return '<h2>' + heading + '　' + jpDate(date) + '</h2>' + blocks;
+  return '<h2 style="margin:22px 0 8px">' + heading + '　' + jpDate(date) + '</h2>' + blocks;
 }
 
 export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav = "", alert = "", now }) {

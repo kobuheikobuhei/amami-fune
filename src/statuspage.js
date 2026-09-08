@@ -7,6 +7,7 @@
 // 取得失敗中は赤字で明示し、公式サイトへの導線を前面に出す。
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
+import { serviceRow } from './style.js';
 import { jstDate } from './lib/text.js';
 
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
@@ -91,37 +92,25 @@ export function buildStatusPage({ route, operator, events, health, officialUrl, 
   const banner = failureBanner(health, failThreshold);
   const isBroken = banner !== '';
 
+  // 表組みは使わない。列幅が固定され、狭い画面で文字が詰まって読めなくなるため。
   const rows = upcoming
-    .map((e) => {
-      const color = STATUS_COLOR[e.status];
-      const label = (e.detail ? DETAIL_DISPLAY[e.detail] ?? e.detail : null) ?? STATUS_LABEL[e.status];
-      const seg = [e.origin ? `${e.origin}発` : null, DIRECTION_LABEL[e.direction] ?? null]
-        .filter(Boolean).join(' ') || '—';
-      const link = e.published_post?.url
-        ? `<a href="${e.published_post.url}">詳細</a>`
-        : `<a href="${e.source_url}" target="_blank" rel="noopener">公式</a>`;
-      return `<tr>
-<td style="padding:6px 12px 6px 0;white-space:nowrap">${periodLabel(e)}</td>
-<td style="padding:6px 12px 6px 0">${seg}</td>
-<td style="padding:6px 12px 6px 0;color:${color};font-weight:bold;white-space:nowrap">${label}</td>
-<td style="padding:6px 0">${link}</td>
-</tr>`;
-    })
-    .join('\n');
-
+    .map((e) => serviceRow({
+      when: periodLabel(e),
+      segment: [e.origin ? e.origin + "発" : null, DIRECTION_LABEL[e.direction] ?? null]
+        .filter(Boolean).join(" "),
+      ship: e.ship,
+      statusText: (e.detail ? DETAIL_DISPLAY[e.detail] ?? e.detail : null) ?? STATUS_LABEL[e.status],
+      color: STATUS_COLOR[e.status],
+      href: e.published_post?.url ?? e.source_url,
+    }))
+    .join('');
   const table = upcoming.length
-    ? `<table style="border-collapse:collapse;width:100%">
-<tr style="border-bottom:2px solid #ddd">
-<th style="text-align:left;padding:6px 12px 6px 0">運航日</th>
-<th style="text-align:left;padding:6px 12px 6px 0">便</th>
-<th style="text-align:left;padding:6px 12px 6px 0">状態</th>
-<th style="text-align:left;padding:6px 0">情報</th>
-</tr>
-${rows}
-</table>`
+    ? rows
     : isBroken
       ? ''
-      : notices.length ? `<p style="color:#6b7280">上記のほかに、日を指定した欠航・ダイヤ変更の発表はありません。</p>` : `<p style="color:#6b7280">現在、欠航・ダイヤ変更の発表はありません（平常運航）。</p>`;
+      : notices.length
+        ? '<p style="color:#6b7280;line-height:1.8">上記のほかに、日を指定した欠航・ダイヤ変更の発表はありません。</p>'
+        : '<p style="color:#6b7280;line-height:1.8">現在、欠航・ダイヤ変更の発表はありません（平常運航）。</p>';
 
   const body = `${nav}${alert}${banner}${noticeSection(notices)}<p style="color:#555;font-size:0.9em">最終更新: ${jst(now)}</p>
 
