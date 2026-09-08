@@ -101,14 +101,17 @@ export function decideMode(previous, weather, typhoons, now) {
 
   return { mode: 'normal', since: now, rough_last_seen: null, reason: '警報なし', last_run: now };
 }
-
 /**
  * 今回の起動で実際に収集を行うか。
- * ワークフローは30分ごとに起動するが、平常モードでは1時間に1回だけ実行する（仕様Q17）。
+ *
+ * ワークフローは15分ごとに起動を試みるが、監視先への負担を抑えるため
+ * 実際に取りに行く間隔は平常1時間・荒天30分に保つ（仕様Q17）。
+ * 起動の機会を増やしているのは、定期実行が混雑で遅れたときに
+ * 次の機会が早く巡ってくるようにするためで、頻度を上げるためではない。
  */
 export function shouldRun(mode, previousLastRun, now) {
-  if (mode === 'rough') return true;
   if (!previousLastRun) return true;
   const minutes = (new Date(now) - new Date(previousLastRun)) / 60000;
-  return minutes >= 55; // 30分間隔の起動で1時間おきになるよう、少し手前で通す
+  // 起動の揺らぎで1回飛ばされないよう、目標より少し手前で通す
+  return minutes >= (mode === 'rough' ? 25 : 55);
 }
