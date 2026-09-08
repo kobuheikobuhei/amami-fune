@@ -233,3 +233,34 @@ export function ongoingNotices(observations, { now }) {
   }
   return notices;
 }
+
+/**
+ * 公式が「通常運航」として掲げている船を取り出す。
+ *
+ * ある船がドック入りでも、別の船が動いていれば便はある。
+ * それを読者に伝えられるのは、公式自身の通常運航の掲示だけ。
+ *
+ * ただし個別の案内が出ている船は除く。公式の通常運航の掲示は
+ * 古いまま残ることがあり（2年前のものもある）、ドック入りの船に
+ * 通常運航と並べて出せば矛盾する。新しい個別の案内を優先する。
+ */
+export function normalShips(observations) {
+  const announced = new Set();
+  for (const obs of observations) {
+    if (!obs.ship || !obs.status) continue;
+    if (obs.status !== "normal") announced.add(obs.route_id + "|" + obs.ship);
+  }
+
+  const out = [];
+  for (const obs of observations) {
+    if (obs.status !== "normal" || !obs.ship) continue;
+    if (announced.has(obs.route_id + "|" + obs.ship)) continue;
+    out.push({
+      route_id: obs.route_id,
+      ship: obs.ship,
+      source_url: obs.link,
+      published_at: obs.published_at,
+    });
+  }
+  return out;
+}

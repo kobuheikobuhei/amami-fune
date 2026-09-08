@@ -60,7 +60,7 @@ function isShipLevel(e) {
   return /ドック|入渠|機関故障/.test(d) && !e.origin && !e.direction;
 }
 
-function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, heading) {
+function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, heading) {
   const blocks = routes.map((route) => {
     const all = eventsOn(eventsByRoute[route.id] ?? [], date);
     const ships = all.filter(isShipLevel);
@@ -78,6 +78,13 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, headin
       const name = e.ship ? e.ship + 'は' : '';
       return '<li style="color:#b45309">' + name + '<strong>' + label(e) + '</strong></li>';
     }).join('');
+
+    // 公式が通常運航と掲げている船。ドック入りの船があっても、
+    // 別の船が動いていることを読者に伝えられる唯一の根拠になる。
+    const normalItems = (normalByRoute[route.id] ?? []).map((n) =>
+      '<li style="color:#166534">' + n.ship + 'は<strong>通常運航</strong>' +
+      ' <a href="' + n.source_url + '" target="_blank" rel="noopener" style="font-size:0.9em">公式</a></li>'
+    ).join('');
 
     const serviceItems = services.map((e) => {
       const seg = [e.origin ? e.origin + "発" : null, DIRECTION_LABEL[e.direction] ?? null]
@@ -104,9 +111,9 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, headin
         'どの船が動く予定かは ' + links.join('　') + ' でご確認ください。</p>'
       : '';
 
-    const body = (noticeItems || shipItems || serviceItems)
+    const body = (noticeItems || shipItems || normalItems || serviceItems)
       ? '<ul style="margin:4px 0 6px;line-height:2.1;padding-left:1.3em">' +
-        noticeItems + shipItems + serviceItems + '</ul>' + scheduleHint
+        noticeItems + shipItems + normalItems + serviceItems + '</ul>' + scheduleHint
       : '<p style="color:#6b7280;margin:4px 0 14px">発表はありません</p>';
 
     return '<div style="margin-bottom:6px"><strong style="font-size:1.05em">' + route.name + '</strong>' + body + '</div>';
@@ -115,7 +122,7 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, headin
   return '<h2 style="margin:22px 0 8px">' + heading + '　' + jpDate(date) + '</h2>' + blocks;
 }
 
-export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, operators = {}, nav = "", alert = "", scope = "", now }) {
+export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, operators = {}, normalByRoute = {}, nav = "", alert = "", scope = "", now }) {
   const today = jstDate(now);
   const tomorrow = addDays(today, 1);
 
@@ -127,8 +134,8 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, ope
       '<p style="color:#555;font-size:0.9em;line-height:1.7">公式の発表を確認した時刻: ' + jst(now) + '<br><span style="font-size:0.95em">この時刻の時点で、下記以外の発表は出ていません。</span></p>' +
       '<p>奄美大島に関係する航路の、今日と明日の発表をまとめています。' +
       '各社が発表した内容のみを掲載しており、発表がない便は平常運航の予定です。</p>' +
-      dayBlock(today, routes, eventsByRoute, noticesByRoute, operators, '今日') +
-      dayBlock(tomorrow, routes, eventsByRoute, {}, operators, '明日') +
+      dayBlock(today, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, '今日') +
+      dayBlock(tomorrow, routes, eventsByRoute, {}, operators, normalByRoute, '明日') +
       '<p style="color:#555;font-size:0.9em">翌日の運航可否は、前日の夕方から夜にかけて発表されることが多くなっています。' +
       'まだ発表がない場合は、時間をおいて再度ご確認ください。</p>' +
       scope +

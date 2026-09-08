@@ -17,7 +17,7 @@ import {
   readHealth, writeHealth, recordSuccess, recordFailure,
   readMode, writeMode, readPageIds, writePageIds, writeNotification, writeDiagnostics,
 } from './lib/state.js';
-import { toCandidates, diffAgainstLedger, publishDecision, ongoingNotices } from './curator.js';
+import { toCandidates, diffAgainstLedger, publishDecision, ongoingNotices, normalShips } from './curator.js';
 import { buildArticle } from './writer.js';
 import { buildStatusPage } from './statuspage.js';
 import { watchTyphoon } from './watchers/typhoon.js';
@@ -128,6 +128,11 @@ async function main() {
 
   const candidates = toCandidates(observations, { now });
   const notices = ongoingNotices(observations, { now });
+  // 公式が通常運航と掲げている船。個別の案内がある船は除かれる。
+  const normalByRoute = normalShips(observations).reduce((acc, n) => {
+    (acc[n.route_id] ??= []).push(n);
+    return acc;
+  }, {});
   const ledger = latestEventsByKey(readEvents());
   const actions = diffAgainstLedger(candidates, ledger, { seedOnlySources, now });
 
@@ -251,6 +256,7 @@ async function main() {
       eventsByRoute: eventsByRouteAll,
       noticesByRoute,
       operators: cfg.operators,
+      normalByRoute,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
       scope: scopeNotice,
       alert: typhoonAlert,
