@@ -1,7 +1,7 @@
 {
-  "mode": "rough",
-  "since": "2026-09-07T23:14:16.786Z",
-  "rough_last_seen": "2026-09-07T23:51:27.185Z",
-  "reason": "警報解除後の様子見（解除から5.8時間）",
-  "last_run": "2026-09-08T05:38:36.856Z"
+  "mode": "normal",
+  "since": "2026-09-08T10:40:51.342Z",
+  "rough_last_seen": null,
+  "reason": "警報なし",
+  "last_run": "2026-09-08T10:40:51.342Z"
 }
