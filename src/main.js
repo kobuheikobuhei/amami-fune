@@ -129,7 +129,7 @@ async function main() {
   const candidates = toCandidates(observations, { now });
   const notices = ongoingNotices(observations, { now });
   // 公式が通常運航と掲げている船。個別の案内がある船は除かれる。
-  const normalByRoute = normalShips(observations).reduce((acc, n) => {
+  const normalByRoute = normalShips(observations, { now }).reduce((acc, n) => {
     (acc[n.route_id] ??= []).push(n);
     return acc;
   }, {});

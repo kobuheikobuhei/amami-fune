@@ -235,32 +235,54 @@ export function ongoingNotices(observations, { now }) {
 }
 
 /**
- * 公式が「通常運航」として掲げている船を取り出す。
+ * 船ごとに、いま有効な案内を1つだけ選ぶ。
  *
- * ある船がドック入りでも、別の船が動いていれば便はある。
- * それを読者に伝えられるのは、公式自身の通常運航の掲示だけ。
+ * 各社は船ごとの掲示を並べて置いており、古いものも残る。
+ * 同じ船に「ドック入り（9月2日発表）」と「通常運航（4月10日発表）」が
+ * 同時に載っている状態が実際にある。船ごとに最新のものを採る。
  *
- * ただし個別の案内が出ている船は除く。公式の通常運航の掲示は
- * 古いまま残ることがあり（2年前のものもある）、ドック入りの船に
- * 通常運航と並べて出せば矛盾する。新しい個別の案内を優先する。
+ * ただし新しければよいわけではない。対象の日が過ぎた案内は、
+ * 新しくても現在を表さない。ドックが明けた後もドック入りと
+ * 言い続けることになるため、期間の終わった案内は選ばない。
+ *
+ * 「当面の間」のように終わりを定めない案内は、日付が過去でも
+ * 続いているため期限切れとしない。
  */
-export function normalShips(observations) {
-  const announced = new Set();
+export function latestByShip(observations, { now }) {
+  const today = jstDate(now);
+
+  const expired = (obs) => {
+    const entries = obs.entries ?? [];
+    if (!entries.length) return false; // 日付を伴わない掲示は期限切れにしない
+    if (OPEN_ENDED.test(obs.summary ?? '') || OPEN_ENDED.test(obs.title ?? '')) return false;
+    return entries.every((e) => (e.service_date_end ?? e.service_date) < today);
+  };
+
+  const best = new Map();
   for (const obs of observations) {
     if (!obs.ship || !obs.status) continue;
-    if (obs.status !== "normal") announced.add(obs.route_id + "|" + obs.ship);
-  }
+    if (expired(obs)) continue;
 
-  const out = [];
-  for (const obs of observations) {
-    if (obs.status !== "normal" || !obs.ship) continue;
-    if (announced.has(obs.route_id + "|" + obs.ship)) continue;
-    out.push({
+    const key = obs.route_id + '|' + obs.ship;
+    const prev = best.get(key);
+    if (!prev || new Date(obs.published_at ?? 0) > new Date(prev.published_at ?? 0)) {
+      best.set(key, obs);
+    }
+  }
+  return [...best.values()];
+}
+
+/**
+ * 公式が通常運航と掲げている船。
+ * ある船がドック入りでも別の船が動いていることを、読者に伝えるために使う。
+ */
+export function normalShips(observations, { now }) {
+  return latestByShip(observations, { now })
+    .filter((obs) => obs.status === 'normal')
+    .map((obs) => ({
       route_id: obs.route_id,
       ship: obs.ship,
       source_url: obs.link,
       published_at: obs.published_at,
-    });
-  }
-  return out;
+    }));
 }
