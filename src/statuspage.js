@@ -90,11 +90,10 @@ export function buildStatusPage({ route, operator, events, health, officialUrl, 
     .sort((a, b) => a.service_date.localeCompare(b.service_date));
 
   // 配船予定への導線。船の入れ替えを読者が確かめられるようにする。
-  const fleetItems = [
-    operator?.fleet_url ? '<li><a href="' + operator.fleet_url + '" target="_blank" rel="noopener">' + (operator.fleet_label ?? '配船予定') + '</a></li>' : '',
-    operator?.fleet_extra_url ? '<li><a href="' + operator.fleet_extra_url + '" target="_blank" rel="noopener">' + operator.fleet_extra_label + '</a></li>' : '',
-    operator?.schedule_url ? '<li><a href="' + operator.schedule_url + '" target="_blank" rel="noopener">' + (operator.schedule_label ?? '時刻表') + '</a></li>' : '',
-  ].filter(Boolean).join('');
+  // 本来の運航予定への案内。PDFではなく、それが置かれているページへ。
+  const fleetItems = (operator?.references ?? [])
+    .map((r) => '<li><a href="' + r.url + '" target="_blank" rel="noopener">' + r.label + '</a></li>')
+    .join('');
   const fleetLinks = fleetItems
     ? '<h3>本来の運航予定</h3><ul style="line-height:2">' + fleetItems + '</ul>' +
       '<p style="font-size:0.9em;color:#555;line-height:1.7">どの日にどの船が運航する予定かは、これらの資料でご確認ください。' +

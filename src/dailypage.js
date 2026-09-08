@@ -92,10 +92,11 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, headin
     // 船の案内があるときは、便の有無を時刻表で確かめてもらう
     // 船の案内があるときは、実際に便があるかを読者が確かめられるようにする。
     // 時刻表は「何時発か」、配船予定は「どの船が動くか」で、必要なのは後者。
-    const links = [];
-    if (op?.fleet_url) links.push('<a href="' + op.fleet_url + '" target="_blank" rel="noopener">' + (op.fleet_label ?? '配船予定') + '</a>');
-    if (op?.fleet_extra_url) links.push('<a href="' + op.fleet_extra_url + '" target="_blank" rel="noopener">' + (op.fleet_extra_label ?? '配船予定') + '</a>');
-    if (op?.schedule_url) links.push('<a href="' + op.schedule_url + '" target="_blank" rel="noopener">' + (op.schedule_label ?? '時刻表') + '</a>');
+    // 船の案内があるときは、実際に便があるかを読者が確かめられるようにする。
+    // PDFへ直接ではなく、それが置かれているページへ案内する。
+    // PDFのURLはハッシュ値で、差し替えられればリンクが切れるため。
+    const links = (op?.references ?? []).map((r) =>
+      '<a href="' + r.url + '" target="_blank" rel="noopener">' + r.label + '</a>');
 
     const scheduleHint = (shipItems || noticeItems) && links.length
       ? '<p style="font-size:0.92em;color:#555;margin:2px 0 12px;line-height:1.9">' +
