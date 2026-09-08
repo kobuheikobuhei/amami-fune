@@ -15,7 +15,7 @@ operators:
     references:
       - label: 時刻表・年間スケジュール
         url: https://www.aline-ferry.com/kagoshima/time/
-      - label: 配船予定表（第一海運・月次）
+      - label: 月ごとの配船予定表（同じグループの第一海運が公開）
         url: https://www.daiichikaiun.co.jp/
     note: 奄美海運と共通のサイト（A"LINE）で運航状況を配信
 
@@ -32,7 +32,7 @@ operators:
     references:
       - label: 時刻表
         url: https://www.aline-ferry.com/amami/time/
-      - label: 配船予定表（第一海運・月次）
+      - label: 月ごとの配船予定表（同じグループの第一海運が公開）
         url: https://www.daiichikaiun.co.jp/
     note: マルエーフェリーと共通サイト
 
