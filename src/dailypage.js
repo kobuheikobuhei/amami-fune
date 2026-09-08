@@ -81,7 +81,7 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, heading) {
   return '<h2 style="margin:22px 0 8px">' + heading + '　' + jpDate(date) + '</h2>' + blocks;
 }
 
-export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav = "", alert = "", now }) {
+export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav = "", alert = "", scope = "", now }) {
   const today = jstDate(now);
   const tomorrow = addDays(today, 1);
 
@@ -97,6 +97,7 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, nav
       dayBlock(tomorrow, routes, eventsByRoute, {}, '明日') +
       '<p style="color:#555;font-size:0.9em">翌日の運航可否は、前日の夕方から夜にかけて発表されることが多くなっています。' +
       'まだ発表がない場合は、時間をおいて再度ご確認ください。</p>' +
+      scope +
       '<hr>' +
       '<p style="font-size:0.9em;color:#555">' + DISCLAIMER + '</p>' +
       '</div>',

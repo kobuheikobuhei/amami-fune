@@ -24,6 +24,7 @@ import { buildTyphoonPage } from './typhoonpage.js';
 import { buildDailyPage } from './dailypage.js';
 import { buildNav, buildArticleNav } from './nav.js';
 import { buildTyphoonAlert } from './alert.js';
+import { buildScopeNotice } from './scope.js';
 import { BloggerPublisher, readCredentials } from './publisher.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -189,6 +190,14 @@ async function main() {
     url: pageIds.__typhoon?.url ?? null,
   });
 
+  // 掲載していない航路を明示する。読者が「発表がない＝平常運航」と
+  // 誤解するのが、情報を出さないことより悪い状態になる。
+  const scopeNotice = buildScopeNotice({
+    routes: cfg.routes,
+    routeIds,
+    operators: cfg.operators,
+  });
+
   for (const routeId of routeIds) {
     const route = routeById[routeId];
     if (!route) continue;
@@ -238,6 +247,7 @@ async function main() {
       eventsByRoute: eventsByRouteAll,
       noticesByRoute,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
+      scope: scopeNotice,
       alert: typhoonAlert,
       now,
     });
