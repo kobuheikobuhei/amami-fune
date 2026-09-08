@@ -190,7 +190,7 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, not
   return {
     title: '台風情報と運航状況',
     body:
-      nav + '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '<br><span style="font-size:0.95em">この時刻の時点で、下記以外の発表は出ていません。</span></p>' +
+      nav + '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '</p>' +
       '<h2>発生中の台風・熱帯低気圧</h2>' +
       head +
       trackSection(nearest, routePorts) +

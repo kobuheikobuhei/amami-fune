@@ -131,9 +131,7 @@ export function buildDailyPage({ routes, eventsByRoute, noticesByRoute = {}, ope
     body:
       nav +
       '<div id="daily-core">' + alert +
-      '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '<br><span style="font-size:0.95em">この時刻の時点で、下記以外の発表は出ていません。</span></p>' +
-      '<p>奄美大島に関係する航路の、今日と明日の発表をまとめています。' +
-      '各社が発表した内容のみを掲載しており、発表がない便は平常運航の予定です。</p>' +
+      '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '</p>' +
       dayBlock(today, routes, eventsByRoute, noticesByRoute, operators, normalByRoute, '今日') +
       dayBlock(tomorrow, routes, eventsByRoute, {}, operators, normalByRoute, '明日') +
       '<p style="color:#555;font-size:0.9em">翌日の運航可否は、前日の夕方から夜にかけて発表されることが多くなっています。' +
