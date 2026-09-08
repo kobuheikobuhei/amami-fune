@@ -12,6 +12,7 @@ import {
   extractDateUnits, extractDirection, extractOrigin, shortHash,
 } from '../lib/text.js';
 import { classify, detailLabel } from '../lib/status.js';
+import { fetchDetail } from './marix-detail.js';
 
 /** タイトル末尾の【...】を取り出す。状態判定はこの中だけを見る */
 function extractBracket(title) {
@@ -19,26 +20,8 @@ function extractBracket(title) {
   return m ? m[1] : null;
 }
 
-/**
- * 括弧の無い発表の状態を決める。
- *
- * マリックスラインは、平常でない状態をすべてタイトルの【】で示す。
- * 括弧が無い発表は平常運航の告知であることを実際の記事で確認した。
- *
- * 記事ページ本体から判定する方法も試したが、このサイトは内容を
- * JavaScript で描画しており、取得できるHTMLには本文が入っていない。
- * そのため表記の規則に頼る。
- *
- * 平常運航は記事にしないため、取り違えても誤った情報が出ることはない。
- * ただし将来この規則が変わると、括弧の無い重要な発表を
- * 平常運航として見過ごすことになる。
- */
-function statusWithoutBracket(title) {
-  // 括弧が無くてもタイトルに状態語があればそれを優先する
-  return classify(title) ?? 'normal';
-}
 
-export async function watchMarix(source, { userAgent }) {
+export async function watchMarix(source, { userAgent, known = new Set() }) {
   const { items, fetchedAt } = await fetchFeed(source.url, { userAgent });
   const observations = [];
 
@@ -49,10 +32,27 @@ export async function watchMarix(source, { userAgent }) {
     let status = classify(statusText);
     let detail = detailLabel(statusText, status);
 
-    if (!bracket) {
-      status = statusWithoutBracket(item.title);
-      detail = detailLabel(item.title, status);
+    // 個別ページには船名と港ごとの状態が入っている。
+    // すでに台帳にある発表は取りに行かない（監視先への負担を増やさないため）。
+    let ship = null;
+    let portNotes = [];
+    const isKnown = known.has(item.link);
+
+    if (!isKnown) {
+      try {
+        const d = await fetchDetail(item.link, { userAgent });
+        ship = d.ship;
+        portNotes = d.port_notes;
+        if (!bracket && d.statusText) {
+          // 括弧の無い発表は平常運航の告知。個別ページの文言で確かめる。
+          status = classify(d.statusText);
+          detail = detailLabel(d.statusText, status);
+        }
+      } catch {
+        // 取れなくても、タイトルから分かる範囲で続ける
+      }
     }
+    if (!bracket && !status) status = 'normal';
 
     const units = extractDateUnits(item.title, item.pubDate ?? fetchedAt);
     const direction = extractDirection(item.title);
@@ -78,11 +78,11 @@ export async function watchMarix(source, { userAgent }) {
       source_id: source.id,
       operator_id: source.operator_id,
       route_id: 'marix-main',
-      ship: null, // タイトルに船名は含まれない
+      ship,
       status,
       detail,
       entries,
-      port_notes: [],
+      port_notes: portNotes,
       service_dates: units.map((u) => u.from),
       title: item.title,
       link: item.link,

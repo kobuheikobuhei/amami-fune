@@ -98,6 +98,11 @@ async function main() {
   );
   log('[' + now + '] フェーズ' + PHASE + ' / 対象ソース ' + targets.length + '件' + (DRY_RUN ? '（ドライラン）' : ''));
 
+  // すでに台帳にある発表のURL。個別ページを二度取りに行かないために使う。
+  const knownUrls = new Set(
+    [...latestEventsByKey(readEvents()).values()].map((e) => e.source_url).filter(Boolean)
+  );
+
   const health = readHealth();
   const observations = [];
   const seedOnlySources = new Set();
@@ -107,7 +112,7 @@ async function main() {
     if (firstRun) seedOnlySources.add(source.id);
 
     try {
-      const r = await WATCHERS[source.id](source, { userAgent: cfg.userAgent });
+      const r = await WATCHERS[source.id](source, { userAgent: cfg.userAgent, known: knownUrls });
       observations.push(...r.observations);
       recordSuccess(health, source.id, r.fetchedAt);
       log('  ok   ' + source.id + '  記事' + r.observations.length + '件' + (firstRun ? ' [初回：記録のみ]' : ''));
