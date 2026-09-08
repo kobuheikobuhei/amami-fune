@@ -107,7 +107,6 @@ function dayBlock(date, routes, eventsByRoute, noticesByRoute, operators, normal
 
     const scheduleHint = (shipItems || noticeItems) && links.length
       ? '<p style="font-size:0.92em;color:#555;margin:2px 0 12px;line-height:1.9">' +
-        '船が入れ替わることがあり、便そのものは運航される場合があります。' +
         'どの船が動く予定かは ' + links.join('　') + ' でご確認ください。</p>'
       : '';
 
