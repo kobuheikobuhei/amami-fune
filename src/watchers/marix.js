@@ -13,6 +13,7 @@ import {
 } from '../lib/text.js';
 import { classify, detailLabel } from '../lib/status.js';
 import { fetchDetail } from './marix-detail.js';
+import { fetchList } from './marix-list.js';
 
 /** タイトル末尾の【...】を取り出す。状態判定はこの中だけを見る */
 function extractBracket(title) {
@@ -21,7 +22,70 @@ function extractBracket(title) {
 }
 
 
-export async function watchMarix(source, { userAgent, known = new Set() }) {
+/**
+ * 一覧ページの項目を、RSSと同じ形の観測結果へ変換する。
+ * 一覧は状態が class として構造化されており、RSSより多くの便を載せる。
+ */
+async function fromList({ userAgent, known, source }) {
+  const { items, fetchedAt } = await fetchList({ userAgent });
+  const observations = [];
+
+  for (const it of items) {
+    // 日付を取り出せない項目は扱わない。
+    // 臨時便の一部はURLに日付を含まず、日付なしのまま渡すと
+    // 終わりの無い案内として「継続中」に紛れ込む。
+    if (!it.service_date) continue;
+
+    let ship = null;
+    let portNotes = [];
+    if (!known.has(it.url)) {
+      try {
+        const d = await fetchDetail(it.url, { userAgent });
+        ship = d.ship;
+        portNotes = d.port_notes;
+      } catch { /* 取れなくても一覧の情報で続ける */ }
+    }
+
+    const entries = it.service_date
+      ? [{
+          service_date: it.service_date,
+          service_date_end: null,
+          status: it.status,
+          direction: it.direction ?? null,
+          // 簡略な項目には出発港が載らない。この航路は下りが鹿児島新港発、
+          // 上りが那覇港発と決まっているため方向から補う。
+          origin: extractOrigin(it.ports?.[0] ?? "") ??
+            (it.direction === "down" ? "鹿児島新港" : it.direction === "up" ? "那覇" : null),
+          detail: it.label,
+          specificity: 3,
+          line: it.label,
+        }]
+      : [];
+
+    observations.push({
+      source_id: source.id,
+      operator_id: source.operator_id,
+      route_id: 'marix-main',
+      ship,
+      status: it.status,
+      detail: it.label,
+      entries,
+      port_notes: portNotes,
+      service_dates: it.service_date ? [it.service_date] : [],
+      title: [it.service_date, it.direction === "up" ? "上り便" : it.direction === "down" ? "下り便" : null, it.label]
+        .filter(Boolean).join(" "),
+      link: it.url,
+      guid: it.url,
+      published_at: null,
+      summary: it.label,
+      body_hash: it.status + it.label,
+      confidence: 'A',
+    });
+  }
+  return { fetchedAt, observations };
+}
+
+async function fromRss(source, { userAgent, known = new Set() }) {
   const { items, fetchedAt } = await fetchFeed(source.url, { userAgent });
   const observations = [];
 
@@ -95,4 +159,22 @@ export async function watchMarix(source, { userAgent, known = new Set() }) {
   }
 
   return { fetchedAt, observations };
+}
+
+
+/**
+ * マリックスラインの運航状況を取る。
+ *
+ * 一覧ページを主とする。状態が class として構造化されており、
+ * RSSの10件に対して14便が載る。9月2日から5日の欠航はRSSに無かった。
+ * 一覧が取れないときはRSSへ切り替える。
+ */
+export async function watchMarix(source, { userAgent, known = new Set() }) {
+  try {
+    const r = await fromList({ userAgent, known, source });
+    if (r.observations.length) return r;
+  } catch {
+    // 一覧の作りが変わった場合はRSSで続ける
+  }
+  return fromRss(source, { userAgent, known });
 }

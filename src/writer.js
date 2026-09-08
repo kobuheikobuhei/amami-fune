@@ -249,7 +249,8 @@ export function buildBody(event, { route, correction = null, nav = "" }) {
 
   const facts =
     field(isPeriod ? '対象期間' : '運航日', periodLong(event)) +
-    field('状態', detailWord && detailWord !== statusLabel ? statusLabel + '（' + detailWord + '）' : statusLabel) +
+    field('状態', detailWord && detailWord.replace(/き/g, '') !== statusLabel.replace(/き/g, '')
+      ? statusLabel + '（' + detailWord + '）' : statusLabel) +
     field('船社', op) +
     field('船名', event.ship) +
     field('出発港', event.origin) +
@@ -300,9 +301,14 @@ function routeSection(event, route) {
 
   const ordered = event.direction === "up" ? [...ports].reverse() : [...ports];
 
+  // 航路の並びと注記で港名の表記が揃わないことがある。
+  // 公式は「亀徳港」、航路の定義は「亀徳」と書く。前方一致で対応づける。
   const marks = {};
   for (const n of event.port_notes ?? []) {
-    for (const p of n.ports) if (!marks[p]) marks[p] = n.kind;
+    for (const noted of n.ports) {
+      const hit = ordered.find((p) => noted === p || noted.startsWith(p));
+      if (hit && !marks[hit]) marks[hit] = n.kind;
+    }
   }
 
   const legend = (event.port_notes ?? []).map((n) => {
