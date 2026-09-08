@@ -175,7 +175,7 @@ function operationSection(routes, eventsByRoute, noticesByRoute, today) {
   return '<h2>運航状況</h2>' + blocks;
 }
 
-export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, now }) {
+export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, nav = "", now }) {
   const today = jstDate(now);
   const routePorts = routes && routes.length ? (routes[0].ports || []) : [];
   const active = typhoons || [];
@@ -190,7 +190,7 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, not
   return {
     title: '台風情報と運航状況',
     body:
-      '<p style="color:#555;font-size:0.9em">最終更新: ' + jst(now) + '</p>' +
+      nav + '<p style="color:#555;font-size:0.9em">最終更新: ' + jst(now) + '</p>' +
       '<h2>発生中の台風・熱帯低気圧</h2>' +
       head +
       trackSection(nearest, routePorts) +

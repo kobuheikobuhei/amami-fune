@@ -224,7 +224,7 @@ function revisionHistory(event) {
   return `<h3>更新履歴</h3>\n<ul>\n${rows}\n</ul>`;
 }
 
-export function buildBody(event, { route, correction = null }) {
+export function buildBody(event, { route, correction = null, nav = "" }) {
   const op = OPERATOR_LABEL[event.operator_id] ?? event.operator_id;
   const statusLabel = STATUS_LABEL[event.status];
   const detailWord = detailText(event);
@@ -249,7 +249,7 @@ export function buildBody(event, { route, correction = null }) {
     ? `<p style="color:#dc2626;font-weight:bold">【訂正】${correction}</p>\n`
     : '';
 
-  return `${correctionBlock}<p style="border-left:6px solid ${color};padding:8px 12px;margin:0 0 16px">
+  return `${nav}${correctionBlock}<p style="border-left:6px solid ${color};padding:8px 12px;margin:0 0 16px">
 <strong>${periodLong(event)}</strong> の ${op}${event.ship ? `「${event.ship}」` : ''} は
 <strong style="color:${color}">${statusLabel}</strong>${detail} です。
 </p>
@@ -267,12 +267,12 @@ ${revisionHistory(event)}
 <p style="font-size:0.9em;color:#555">${DISCLAIMER}</p>`;
 }
 
-export function buildArticle(event, { route, correction = null }) {
+export function buildArticle(event, { route, correction = null, nav = "" }) {
   return {
     title: buildTitle(event),
     permalink: buildPermalink(event),
     labels: buildLabels(event, route),
-    body: buildBody(event, { route, correction }),
+    body: buildBody(event, { route, correction, nav }),
   };
 }
 

@@ -78,7 +78,7 @@ function noticeSection(notices) {
     '<strong>継続中のお知らせ</strong><ul style="margin:6px 0 0">' + items + '</ul></div>';
 }
 
-export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], notices = [], now, failThreshold = 2 }) {
+export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], notices = [], nav = "", now, failThreshold = 2 }) {
   const today = jstDate(now);
 
   // 今日以降の便のみ。過去の欠航を現在の状態として見せない。
@@ -123,7 +123,7 @@ ${rows}
       ? ''
       : notices.length ? `<p style="color:#6b7280">上記のほかに、日を指定した欠航・ダイヤ変更の発表はありません。</p>` : `<p style="color:#6b7280">現在、欠航・ダイヤ変更の発表はありません（平常運航）。</p>`;
 
-  const body = `${banner}${noticeSection(notices)}<p style="color:#555;font-size:0.9em">最終更新: ${jst(now)}</p>
+  const body = `${nav}${banner}${noticeSection(notices)}<p style="color:#555;font-size:0.9em">最終更新: ${jst(now)}</p>
 
 <h2>${route.name}</h2>
 ${route.ships?.length ? `<p style="color:#555">運航船: ${route.ships.join(' / ')}</p>` : ''}

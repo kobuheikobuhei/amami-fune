@@ -1,7 +1,22 @@
 {
-  "marue-main": "6653372132512586030",
-  "marix-main": "4177043989145020045",
-  "amamikaiun-kikai": "3366515634021190679",
-  "__typhoon": "3470698604996790925",
-  "__daily": "1162458775088902872"
+  "marue-main": {
+    "id": "6653372132512586030",
+    "url": "https://amami-fune.blogspot.com/p/blog-page_07.html"
+  },
+  "marix-main": {
+    "id": "4177043989145020045",
+    "url": "https://amami-fune.blogspot.com/p/blog-page_651.html"
+  },
+  "amamikaiun-kikai": {
+    "id": "3366515634021190679",
+    "url": "https://amami-fune.blogspot.com/p/blog-page_290.html"
+  },
+  "__typhoon": {
+    "id": "3470698604996790925",
+    "url": "https://amami-fune.blogspot.com/p/blog-page_854.html"
+  },
+  "__daily": {
+    "id": "1162458775088902872",
+    "url": "https://amami-fune.blogspot.com/p/blog-page_578.html"
+  }
 }

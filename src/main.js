@@ -22,6 +22,7 @@ import { buildStatusPage } from './statuspage.js';
 import { watchTyphoon } from './watchers/typhoon.js';
 import { buildTyphoonPage } from './typhoonpage.js';
 import { buildDailyPage } from './dailypage.js';
+import { buildNav, buildArticleNav } from './nav.js';
 import { BloggerPublisher, readCredentials } from './publisher.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -137,7 +138,7 @@ async function main() {
   });
 
   for (const a of [...created, ...updated]) {
-    const article = buildArticle(a.event, { route: routeById[a.event.route_id] });
+    const article = buildArticle(a.event, { route: routeById[a.event.route_id], nav: articleNav });
     const decision = publishDecision(a.event);
     const kind = a.type === 'create' ? '新規' : '続報';
 
@@ -176,6 +177,10 @@ async function main() {
     ...[...created, ...updated, ...seeded].map((a) => a.event),
   ]);
   const pageIds = readPageIds();
+  // 案内は前回の実行で記録したURLから作る。
+  // 初回はまだURLが無いため案内なしで作られ、次の実行から入る。
+  const phaseRoutes = [...routeIds].map((id) => routeById[id]).filter(Boolean);
+  const articleNav = buildArticleNav(pageIds);
 
   for (const routeId of routeIds) {
     const route = routeById[routeId];
@@ -195,12 +200,13 @@ async function main() {
       referenceLinks: cfg.referenceLinks,
       notices: notices.filter((n) => n.route_id === routeId),
       now,
+      nav: buildNav(pageIds, phaseRoutes, routeId),
       failThreshold: FAIL_THRESHOLD,
     });
 
     try {
-      const r = await publisher.upsertPage(pageIds[routeId] ?? null, page);
-      pageIds[routeId] = r.id;
+      const r = await publisher.upsertPage(pageIds[routeId]?.id ?? null, page);
+      pageIds[routeId] = { id: r.id, url: r.url ?? pageIds[routeId]?.url ?? null };
       log('  常設ページ更新: ' + page.title);
     } catch (err) {
       log('  常設ページの更新に失敗: ' + routeId + ' — ' + err.message);
@@ -223,10 +229,11 @@ async function main() {
       routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
       eventsByRoute: eventsByRouteAll,
       noticesByRoute,
+      nav: buildNav(pageIds, phaseRoutes, '__daily'),
       now,
     });
-    const r = await publisher.upsertPage(pageIds.__daily ?? null, dailyPage);
-    pageIds.__daily = r.id;
+    const r = await publisher.upsertPage(pageIds.__daily?.id ?? null, dailyPage);
+    pageIds.__daily = { id: r.id, url: r.url ?? pageIds.__daily?.url ?? null };
     log('  今日・明日のまとめ更新');
   } catch (err) {
     log('  今日・明日のまとめの更新に失敗: ' + err.message);
@@ -240,13 +247,14 @@ async function main() {
     const typhoonPage = buildTyphoonPage({
       typhoons,
       weather: weatherResult,
+      nav: buildNav(pageIds, phaseRoutes, '__typhoon'),
       routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
       eventsByRoute,
       noticesByRoute,
       now,
     });
-    const r = await publisher.upsertPage(pageIds.__typhoon ?? null, typhoonPage);
-    pageIds.__typhoon = r.id;
+    const r = await publisher.upsertPage(pageIds.__typhoon?.id ?? null, typhoonPage);
+    pageIds.__typhoon = { id: r.id, url: r.url ?? pageIds.__typhoon?.url ?? null };
     log('  台風ページ更新: 発生中 ' + typhoons.length + '件');
   } catch (err) {
     log('  台風ページの更新に失敗: ' + err.message);
