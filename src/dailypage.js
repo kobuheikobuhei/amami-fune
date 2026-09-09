@@ -75,7 +75,7 @@ export function buildDailyPage({
         labelOf: (e) => label(e) + 'の発表があります',
       }) +
       '</div>' +
-      buildCargoSection(cargo) +
+      buildCargoSection(cargo, pageIds) +
       routeGuide(routes, pageIds) +
       scope +
       '<hr>' +

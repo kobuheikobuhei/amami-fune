@@ -115,7 +115,7 @@ routes:
     operator_id: kyodogumi
     short: 共同組海運
     enabled: true
-    phase: 2
+    phase: 1
     verified: true
     ships: [みさきⅡ, つばさ]
     ports: [鹿児島, 名瀬, 徳之島, 喜界島, 沖永良部]
@@ -153,4 +153,5 @@ cargo:
   - label: 共同組海運
     ports: 鹿児島〜奄美群島
     url: https://www.kyoudougumikaiun.co.jp/page2
+    route_id: kyodogumi-main
     note: 配船予定表が公開されています

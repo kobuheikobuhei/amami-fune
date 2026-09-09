@@ -38,6 +38,7 @@ Windows の PowerShell は既定でスクリプトの実行を禁止している
 | `npm run check:blog` | `node src/tools/check-blog.js` |
 | `npm run get-token` | `node src/tools/get-refresh-token.js` |
 | 運航状況ページの下見（公開しない） | `node src/tools/preview-daily.js tmp/preview-daily.html` |
+| 解析を直した後、既存記事を現在の判定に揃える | `node src/tools/resync-articles.js`（`--apply` で実行） |
 
 **`src/main.js` は読み込んだだけで本番実行になる。** 引数なしで読み込むと
 ブログのページを実際に更新する。動作確認は必ず `--dry-run` を付けて行う。

@@ -46,16 +46,22 @@ export const AUTO_PUBLISHABLE = new Set([
 export const NOT_ARTICLE = new Set([STATUS.NORMAL, STATUS.UNKNOWN]);
 
 // 判定の順序に意味がある。先に来たものが優先される。
+//
 // 「条件付運航」は「運航」を含むため平常運航より先に、
 // 「運航再開」は「運休解除・運航再開」のような表現のため運休より先に置く。
+//
+// 「運休」は「ドック」より先に置く。船がドックに入っても別の船が入れば便は動くが、
+// 「運休となります」と書かれていればその日は便が無い。共同組海運のドック案内は
+// 運休を明記しており、マルエーフェリーのドック案内は船の入渠を告げるだけ。
+// 同じ「ドック」の語でも意味が違うので、運休の有無で先に分ける。
 const RULES = [
   { re: /欠航/, status: STATUS.CANCELLED },
   { re: /条件付/, status: STATUS.CONDITIONAL },
   { re: /未定|検討中/, status: STATUS.UNDECIDED },
   { re: /運航再開|運行再開/, status: STATUS.RESUMED },
+  { re: /運休/, status: STATUS.CANCELLED },
   { re: /臨時便|臨時運航/, status: STATUS.EXTRA },
   { re: /ドック|入渠/, status: STATUS.EXTRA },
-  { re: /運休/, status: STATUS.EXTRA },
   { re: /スケジュール変更|航行経路変更|経路変更|寄港地変更|時刻変更|ダイヤ変更/, status: STATUS.EXTRA },
   { re: /通常運航|平常運航/, status: STATUS.NORMAL },
 ];
@@ -118,10 +124,17 @@ export function detailPhrase(text, status) {
   const suspended = has('運休');
   const failure = has('機関故障');
 
-  if (dock && suspended) return 'ドック入りのため運休';
-  if (dock) return 'ドック入り';
-  if (failure && suspended) return '機関故障のため運休';
-  if (suspended) return '運休';
+  // 判定された状態と食い違う言い回しは使わない。
+  // ドック入りの案内には運航再開の予定日も併記されるため、
+  // 再開の便にまで「ドック入り」と付けてしまう。
+  const fits = (phrase) => !status || classify(phrase) === status;
 
-  return detailLabel(text, status);
+  const phrase = [
+    dock && suspended ? 'ドック入りのため運休' : null,
+    failure && suspended ? '機関故障のため運休' : null,
+    dock ? 'ドック入り' : null,
+    suspended ? '運休' : null,
+  ].filter(Boolean).find(fits);
+
+  return phrase ?? detailLabel(text, status);
 }
