@@ -61,7 +61,11 @@ export function buildDailyPage({
     title: '運航状況',
     body:
       nav +
-      '<div id="daily-core">' + alert +
+      // daily-core はページ全体、daily-now はホームに出す分。
+      // ホームには「いま何が動いているか」だけを出し、
+      // 案内や注意書きはページ本体に置く。
+      '<div id="daily-core">' +
+      '<div id="daily-now">' + alert +
       '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '</p>' +
       buildFleetSection({
         fleet,
@@ -69,6 +73,7 @@ export function buildDailyPage({
         events,
         labelOf: (e) => label(e) + 'の発表があります',
       }) +
+      '</div>' +
       routeGuide(routes, pageIds) +
       scope +
       '<hr>' +
