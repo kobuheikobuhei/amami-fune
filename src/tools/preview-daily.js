@@ -8,7 +8,7 @@ import { loadConfig, activeRouteIds } from '../lib/config.js';
 import { watchAline } from '../watchers/aline.js';
 import { watchMarix } from '../watchers/marix.js';
 import { toCandidates, ongoingNotices, normalShips } from '../curator.js';
-import { readEvents, latestEventsByKey, readFleet } from '../lib/state.js';
+import { readEvents, latestEventsByKey, readFleet, readPageIds } from '../lib/state.js';
 import { buildDailyPage } from '../dailypage.js';
 import { buildFleetView } from '../fleet/voyages.js';
 import { fetchFleet, shouldRefresh } from '../fleet/index.js';
@@ -42,7 +42,8 @@ const fleetView = buildFleetView(fleet, cfg.timetables);
 
 const page = buildDailyPage({
   routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
-  eventsByRoute, noticesByRoute, operators: cfg.operators, normalByRoute,
+  pageIds: readPageIds(),
+  events: Object.values(eventsByRoute).flat(),
   fleet: fleetView,
   scope: buildScopeNotice({ routes: cfg.routes, routeIds, operators: cfg.operators }),
   now,

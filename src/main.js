@@ -288,11 +288,9 @@ async function main() {
 
   try {
     const dailyPage = buildDailyPage({
-      routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
-      eventsByRoute: eventsByRouteAll,
-      noticesByRoute,
-      operators: cfg.operators,
-      normalByRoute,
+      routes: phaseRoutes,
+      pageIds,
+      events: Object.values(eventsByRouteAll).flat(),
       fleet: fleetView,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
       scope: scopeNotice,
