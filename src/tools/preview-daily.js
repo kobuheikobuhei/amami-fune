@@ -37,7 +37,7 @@ const noticesByRoute = ongoingNotices(obs, { now }).reduce((a, n) => ((a[n.route
 const normalByRoute = normalShips(obs, { now }).reduce((a, n) => ((a[n.route_id] ??= []).push(n), a), {});
 
 let fleet = readFleet();
-if (shouldRefresh(fleet, now)) fleet = await fetchFleet({ userAgent: cfg.userAgent, now });
+if (shouldRefresh(fleet, now)) fleet = await fetchFleet({ userAgent: cfg.userAgent, now, timetables: cfg.timetables });
 const fleetView = buildFleetView(fleet, cfg.timetables);
 
 const page = buildDailyPage({
@@ -56,5 +56,5 @@ writeFileSync(out,
   '<h1 style="font-size:1.4em">' + page.title + '</h1>' + page.body, 'utf8');
 
 console.log('題名: ' + page.title);
-console.log('配船: ' + (fleetView ? fleetView.directions.map(d => d.label + ' ' + d.voyages.length + '便').join(' / ') : 'なし'));
+console.log('配船: ' + (fleetView ? fleetView.routes.map(r => r.group + ' [' + r.services.map(s => s.label + ' ' + s.voyages.length + '便').join(', ') + ']').join(' / ') : 'なし'));
 console.log('書き出し: ' + out);

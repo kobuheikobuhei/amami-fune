@@ -88,29 +88,48 @@ export function progress(voyage, now) {
 
 /**
  * 取得した配船と時刻表から、表示に渡す形を作る。
- * 下り・上りの2つに分け、それぞれ便の並びを持たせる。
+ *
+ * 航路ごとにまとめ、その中を下り・上りに分ける。時刻表の名前を鍵にして
+ * 対応づけるので、航路が増えても data/timetable.yml に足すだけで済む。
  */
 export function buildFleetView(fleet, timetables) {
-  const map = { down: timetables.kagoshima_okinawa_down, up: timetables.kagoshima_okinawa_up };
-  const directions = [];
+  const groups = new Map();
 
-  for (const key of ['down', 'up']) {
-    const timetable = map[key];
+  for (const [key, timetable] of Object.entries(timetables)) {
     const departures = fleet?.departures?.[key] ?? [];
-    if (!timetable || !departures.length) continue;
-    directions.push({
+    if (!departures.length) continue;
+
+    const name = timetable.group ?? timetable.label;
+    if (!groups.has(name)) {
+      groups.set(name, {
+        group: name,
+        operators: timetable.operators ?? null,
+        note: timetable.note ?? null,
+        services: [],
+        links: [],
+      });
+    }
+    const g = groups.get(name);
+    if (!g.note && timetable.note) g.note = timetable.note;
+    g.services.push({
       key,
       label: timetable.label,
       summary: timetable.summary,
       voyages: buildVoyages(departures, timetable),
     });
+    for (const s of timetable.sources ?? []) {
+      if (!g.links.some((l) => l.url === s.url)) g.links.push(s);
+    }
   }
 
-  if (!directions.length) return null;
-  return { ...fleet, directions, links: map.down.sources };
+  const routes = [...groups.values()];
+  if (!routes.length) return null;
+  return { ...fleet, routes };
 }
 
 /** 表示に出ている運航会社。案内の書き方を変えるのに使う */
 export function fleetOperatorIds(view) {
-  return new Set((view?.directions ?? []).flatMap((d) => d.voyages.map((v) => v.operator_id)));
+  return new Set((view?.routes ?? [])
+    .flatMap((r) => r.services)
+    .flatMap((s) => s.voyages.map((v) => v.operator_id)));
 }

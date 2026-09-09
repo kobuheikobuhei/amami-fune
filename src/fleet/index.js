@@ -10,9 +10,11 @@
 import { fetchSchedule as fetchMarueSchedule } from './marue.js';
 import { fetchDates as fetchMarixDates } from '../watchers/marix-search.js';
 import { jstDate } from '../lib/text.js';
+import * as amami from './amamikaiun.js';
 
 const MARUE = { operator_id: 'marue', name: 'マルエーフェリー' };
 const MARIX = { operator_id: 'marix', name: 'マリックスライン' };
+const MARIX_PAGE = 'https://marixline.com/price_schedule/';
 
 // マルエーの記号と向きの対応。●が鹿児島発、○が那覇発。
 const KIND_BY_DIRECTION = { down: 'kagoshima', up: 'naha' };
@@ -93,16 +95,22 @@ export function merge({ marue, marix, dates, direction }) {
  * マルエーのPDFは1回だけ取り、両方向をそこから読む。
  * マリックスは日付ごとの問い合わせなので、向きごとに日数分だけ呼ぶ。
  */
-export async function fetchFleet({ userAgent, now, back = 1, ahead = 7 }) {
+export async function fetchFleet({ userAgent, now, back = 1, ahead = 7, timetables }) {
   const today = jstDate(now);
   const dates = windowDates(today, back, ahead);
-
-  const marueResult = await fetchMarueSchedule({ userAgent });
 
   const departures = {};
   const problems = [];
   const notes = [];
+  const sources = {};
 
+  // ── 鹿児島航路（マルエー・マリックス）──
+  // 2社が1日1便を分け合うので、重ねて突き合わせられる。
+  const marueResult = await fetchMarueSchedule({ userAgent });
+  sources.marue = marueResult.url;
+  sources.marix = MARIX_PAGE;
+
+  const kagoshima = {};
   for (const direction of ['down', 'up']) {
     const marue = marueDepartureDates(marueResult.schedule, direction)
       .filter((d) => dates.includes(d.date));
@@ -111,18 +119,40 @@ export async function fetchFleet({ userAgent, now, back = 1, ahead = 7 }) {
     const marix = raw.map((r) => ({ date: r.date, ship: r.ship, depart: r.depart, ...MARIX }));
 
     const merged = merge({ marue, marix, dates, direction });
-    departures[direction] = merged.departures;
+    kagoshima[direction] = merged.departures;
+    departures['kagoshima_okinawa_' + direction] = merged.departures;
     problems.push(...merged.problems);
     notes.push(...merged.notes);
   }
+  problems.push(...checkCycle(kagoshima));
 
-  problems.push(...checkCycle(departures));
+  // ── 奄美海運 ──
+  // 1社しかないため会社どうしの突き合わせができない。
+  // 代わりに、公式の案内が前提どおりかを確かめてから使う。
+  try {
+    const timetable = { down: timetables.amamikaiun_down, up: timetables.amamikaiun_up };
+    const notice = await amami.fetchNotice({ userAgent });
+    sources.amamikaiun = notice.url;
+    const bad = amami.verify(notice, timetable);
+    if (bad.length) {
+      problems.push(...bad.map((p) => '奄美海運: ' + p));
+    } else {
+      const down = amami.departuresFor(dates, timetable.down);
+      const up = amami.departuresFor(dates, timetable.up);
+      problems.push(...amami.checkCycle({ down, up, upTo: dates[dates.length - 1] })
+        .map((p) => '奄美海運: ' + p));
+      departures.amamikaiun_down = down;
+      departures.amamikaiun_up = up;
+    }
+  } catch (err) {
+    problems.push('奄美海運: 運航スケジュールを取得できませんでした — ' + err.message);
+  }
 
   return {
     checked_at: now,
     from: dates[0],
     to: dates[dates.length - 1],
-    sources: { marue: marueResult.url, marix: 'https://marixline.com/price_schedule/' },
+    sources,
     departures,
     problems,
     notes,
@@ -155,9 +185,9 @@ export function checkCycle(departures) {
 /** 取り直すべきかを決める。既定は12時間ごと、または窓が明日に届かないとき */
 export function shouldRefresh(previous, now, { hours = 12 } = {}) {
   if (!previous?.checked_at) return true;
-  // 形が変わったときも取り直す（下り・上りに分ける前の記録が残っている場合）
-  if (!previous.departures || Array.isArray(previous.departures)) return true;
-  if (!previous.departures.down || !previous.departures.up) return true;
+  // 形が変わったときも取り直す（航路ごとに分ける前の記録が残っている場合）
+  const keys = Object.keys(previous.departures ?? {});
+  if (!keys.includes('kagoshima_okinawa_down')) return true;
   const tomorrow = addDays(jstDate(now), 1);
   if (!previous.to || previous.to < tomorrow) return true;
   return (new Date(now) - new Date(previous.checked_at)) / 36e5 >= hours;

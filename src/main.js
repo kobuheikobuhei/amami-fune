@@ -266,17 +266,18 @@ async function main() {
   let fleet = readFleet();
   if (shouldRefresh(fleet, now)) {
     try {
-      const fetched = await fetchFleet({ userAgent: cfg.userAgent, now });
+      const fetched = await fetchFleet({ userAgent: cfg.userAgent, now, timetables: cfg.timetables });
       if (fetched.problems.length) {
         // 突き合わせで矛盾が出たら、読み取りが壊れている。
         // もっともらしい誤った予定を載せるのは、載せないより有害。
         log("  配船予定に矛盾: " + fetched.problems.join(" / "));
         notify.push("- 配船予定の突き合わせで矛盾: " + fetched.problems.join(" / "));
-        fleet = { ...fetched, departures: { down: [], up: [] } };
+        fleet = { ...fetched, departures: {} };
       } else {
         fleet = fetched;
-        log("  配船予定を更新: 下り" + fetched.departures.down.length + "便 / 上り" + fetched.departures.up.length +
-          "便（" + fetched.from + "〜" + fetched.to + "）");
+        log("  配船予定を更新: " + Object.entries(fetched.departures)
+          .map(([k, v]) => k + " " + v.length + "便").join(" / ") +
+          "（" + fetched.from + "〜" + fetched.to + "）");
       }
     } catch (err) {
       log("  配船予定の取得に失敗: " + err.message);
@@ -335,7 +336,7 @@ async function main() {
       updated: updated.length,
       seeded: seeded.length,
       status_pages: Object.keys(pageIds).length,
-      fleet_departures: (fleet?.departures?.down?.length ?? 0) + (fleet?.departures?.up?.length ?? 0),
+      fleet_departures: Object.values(fleet?.departures ?? {}).reduce((n, v) => n + v.length, 0),
       notifications: notify.length,
     };
     writeDiagnostics(diagnostics);

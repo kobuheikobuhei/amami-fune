@@ -208,8 +208,7 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
       add("重大", "配船", "配船予定が古くなっています",
         Math.floor(hours) + "時間前の取得のまま更新されていません");
     }
-    const down = fleet.departures?.down ?? [];
-    const up = fleet.departures?.up ?? [];
+    const counts = Object.entries(fleet.departures ?? {});
     const tomorrow = jstDate(new Date(new Date(now).getTime() + 86400000).toISOString());
     // 出港の無い日はあるので、窓が届いているかだけを見る。
     if (!fleet.to || fleet.to < tomorrow) {
@@ -219,9 +218,12 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
     for (const p of fleet.problems ?? []) {
       add("重大", "配船", "配船予定の突き合わせで矛盾が出ています", p);
     }
-    if (!down.length || !up.length) {
-      add("重大", "配船", "配船予定が片方向でも取れていません",
-        "下り " + down.length + "便 / 上り " + up.length + "便 — 公式の読み取りが壊れている可能性があります");
+    // 航路がひとつでも欠けていれば、読み取りが壊れている。
+    const expected = ["kagoshima_okinawa_down", "kagoshima_okinawa_up", "amamikaiun_down", "amamikaiun_up"];
+    const missing = expected.filter((k) => !(fleet.departures?.[k] ?? []).length);
+    if (missing.length) {
+      add("重大", "配船", "配船予定が取れていない航路があります",
+        missing.join(", ") + " — 取れているもの: " + (counts.map(([k, v]) => k + " " + v.length + "便").join(" / ") || "なし"));
     }
   }
   return { ...ctx, candidates, ledger, posts, findings };

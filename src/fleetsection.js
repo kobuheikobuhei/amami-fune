@@ -4,7 +4,7 @@
 // ドック入りの船があっても、別の船が同じ便を担う。どの船が実際に
 // 動いているかを先に示すことで、船の入渠と便の運休の取り違えを防ぐ。
 //
-// 出港日は両社の公式情報、時刻は両社の公式時刻表による。推測は入れない。
+// 出港日は各社の公式情報、時刻は公式の時刻表による。推測は入れない。
 
 import { COLOR } from './style.js';
 
@@ -18,7 +18,7 @@ function jpDateTime(iso) {
     String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0');
 }
 
-/** 囲み。左端の色帯で種類を示す。詰めて並ぶよう余白は小さめにする */
+/** 囲み。左端の色帯で種類を示す */
 function box(inner, accent) {
   return '<div style="border:1px solid ' + COLOR.line + ';border-left:5px solid ' + accent +
     ';border-radius:8px;padding:10px 13px;margin:0 0 10px;background:#fff">' + inner + '</div>';
@@ -70,11 +70,11 @@ function runningBox(v, now, note) {
 /**
  * 次に出港する1隻。
  *
- * 読者は奄美にいる。下りなら名瀬に何時に着くか、上りなら名瀬を何時に出るかが
- * 知りたいことなので、寄港地の先頭ではなく名瀬の時刻を示す。
+ * 読者は奄美にいる。名瀬に何時に着くか、名瀬を何時に出るかが知りたいことなので、
+ * 寄港地の先頭ではなく名瀬の時刻を示す。名瀬が始発や終着のときは次の寄港地を出す。
  */
 function nextBox(v, note) {
-  const naze = v.stops.find((s) => s.port === '名瀬港');
+  const naze = v.stops.find((s) => s.port === '名瀬港' && (s.arrive || s.depart));
   const calls = naze
     ? naze.port + '　' + [
         naze.arrive ? jpDateTime(naze.arriveAt) + '着' : null,
@@ -105,35 +105,66 @@ function directionBlock({ voyages, label, summary, now, events, labelOf }) {
   const next = voyages.find((v) => v.departAt > now) ?? null;
   if (!running.length && !next) return '';
 
-  return '<h3 style="margin:16px 0 8px;font-size:1.05em">' + label +
-    '<span style="font-weight:400;font-size:0.82em;color:' + COLOR.muted + '">　' + summary + '</span></h3>' +
-    running.map((v) => runningBox(v, now, noticeFor(v, events, labelOf))).join('') +
+  // 航行中が無いことは、隠さずそのまま示す。
+  // 何も書かないと、載せ忘れているのか本当に無いのかが読者に分からない。
+  const idle = !running.length
+    ? box(tag('航行中', COLOR.muted) +
+        '<div style="color:' + COLOR.muted + '">いま航行している便はありません</div>', COLOR.line)
+    : '';
+
+  return '<h4 style="margin:14px 0 8px;font-size:1em">' + label +
+    '<span style="font-weight:400;font-size:0.82em;color:' + COLOR.muted + '">　' + summary + '</span></h4>' +
+    idle + running.map((v) => runningBox(v, now, noticeFor(v, events, labelOf))).join('') +
     (next ? nextBox(next, noticeFor(next, events, labelOf)) : '');
 }
 
+/** 航路ひとつぶん */
+function routeBlock(route, { now, events, labelOf }) {
+  const inner = route.services
+    .map((s) => directionBlock({ ...s, now, events, labelOf }))
+    .filter(Boolean)
+    .join('');
+  if (!inner) return '';
+
+  const links = (route.links ?? [])
+    .map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener" style="color:' + COLOR.link + '">' + l.label + '</a>')
+    .join('　');
+
+  const note = route.note
+    ? '<p style="background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 11px;' +
+      'margin:6px 0 0;font-size:0.92em;line-height:1.8;color:#92400e">' +
+      route.note.trim().split(String.fromCharCode(10)).join("<br>") + "</p>"
+    : '';
+
+  const operators = route.operators
+    ? '<div style="font-size:0.86em;color:' + COLOR.muted + ';margin-bottom:2px">' + route.operators + '</div>'
+    : '';
+
+  const linkLine = links
+    ? '<p style="font-size:0.86em;color:' + COLOR.muted + ';margin:-2px 0 6px;line-height:1.8">' + links + '</p>'
+    : '';
+
+  return '<h3 style="margin:22px 0 2px;font-size:1.08em">' + route.group + '</h3>' +
+    operators + note + inner + linkLine;
+}
+
 /**
- * fleet: { directions: [{ voyages, label, summary }], problems, links }
+ * fleet: { routes: [{ group, operators, services, links }], problems }
  * 解析が壊れているときは何も出さない。誤った予定は、示さないより有害。
  */
 export function buildFleetSection({ fleet, now, events = [], labelOf = () => '発表あり' }) {
   if (!fleet || fleet.problems?.length) return '';
 
   const t = new Date(now).toISOString();
-  const blocks = (fleet.directions ?? [])
-    .map((d) => directionBlock({ ...d, now: t, events, labelOf }))
+  const blocks = (fleet.routes ?? [])
+    .map((r) => routeBlock(r, { now: t, events, labelOf }))
     .filter(Boolean)
     .join('');
   if (!blocks) return '';
 
-  const links = (fleet.links ?? [])
-    .map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener" style="color:' + COLOR.link + '">' + l.label + '</a>')
-    .join('　');
-
   return '<h2 style="margin:18px 0 4px">現在の運航</h2>' +
     blocks +
-    '<p style="font-size:0.88em;color:' + COLOR.muted + ';line-height:1.8;margin:6px 0 18px">' +
-    '鹿児島〜奄美群島〜沖縄を結ぶ4隻の予定です。出港日と時刻は各社公式によります。' +
-    '天候などで変更されることがあるため、乗船前に各社公式でご確認ください。' +
-    (links ? '<br>' + links : '') +
-    '</p>';
+    '<p style="font-size:0.88em;color:' + COLOR.muted + ';line-height:1.8;margin:10px 0 18px">' +
+    '出港日と時刻は各社公式によります。天候などで変更されることがあるため、' +
+    '乗船前に各社公式でご確認ください。</p>';
 }

@@ -14,6 +14,8 @@
 kagoshima_okinawa_down:
   label: 下り便
   direction: down
+  group: 鹿児島〜奄美群島〜沖縄
+  operators: マルエーフェリー・マリックスライン
   summary: 鹿児島 → 奄美群島 → 沖縄
   sources:
     - label: マルエーフェリー 発着時刻
@@ -58,6 +60,8 @@ kagoshima_okinawa_down:
 kagoshima_okinawa_up:
   label: 上り便
   direction: up
+  group: 鹿児島〜奄美群島〜沖縄
+  operators: マルエーフェリー・マリックスライン
   summary: 沖縄 → 奄美群島 → 鹿児島
   sources:
     - label: マルエーフェリー 発着時刻
@@ -95,6 +99,95 @@ kagoshima_okinawa_up:
       arrive: "20:30"
       depart: "21:20"
     - port: 鹿児島新港
+      area: 鹿児島
+      day: 2
+      arrive: "08:30"
+
+# 奄美海運（鹿児島〜喜界〜奄美大島〜徳之島）
+#
+# フェリーあまみが機関故障で運休中のため、フェリーきかいが週3便で走っている。
+# 通常の年間配船表を使うと、走っていない船を走っていることにしてしまう。
+# 公式の「フェリーきかい週3便運航のご案内」だけを見る。
+#
+#   https://www.aline-ferry.com/amami/time/
+#
+# 鹿児島の乗り場は北埠頭で、マルエー・マリックスの鹿児島新港とは別。
+# 知名港行きは令和7年6月より休止している。
+#
+# 相手が1社しかなく会社どうしの突き合わせができないため、
+# 案内そのものが前提どおりかを毎回確かめる（src/fleet/amamikaiun.js）。
+
+amamikaiun_down:
+  label: 下り便
+  direction: down
+  group: 鹿児島〜喜界〜奄美大島〜徳之島
+  operators: 奄美海運
+  summary: 鹿児島 → 喜界 → 名瀬 → 古仁屋 → 平土野
+  ship: フェリーきかい
+  weekdays: [月, 水, 金]
+  note: |
+    フェリーあまみが機関故障で運休中のため、フェリーきかいが週3便で運航しています。
+    知名港行きは休止しています。
+  sources:
+    - label: 奄美海運 時刻表
+      url: https://www.aline-ferry.com/amami/time/
+  stops:
+    - port: 鹿児島北埠頭
+      area: 鹿児島
+      day: 1
+      depart: "17:30"
+    - port: 喜界港
+      area: 喜界島
+      day: 2
+      arrive: "04:30"
+      depart: "05:00"
+    - port: 名瀬港
+      area: 奄美大島
+      day: 2
+      arrive: "07:00"
+      depart: "07:30"
+    - port: 古仁屋港
+      area: 奄美大島
+      day: 2
+      arrive: "09:40"
+      depart: "10:00"
+    - port: 平土野港
+      area: 徳之島
+      day: 2
+      arrive: "12:20"
+
+amamikaiun_up:
+  label: 上り便
+  direction: up
+  group: 鹿児島〜喜界〜奄美大島〜徳之島
+  operators: 奄美海運
+  summary: 平土野 → 古仁屋 → 名瀬 → 喜界 → 鹿児島
+  ship: フェリーきかい
+  weekdays: [火, 木, 土]
+  sources:
+    - label: 奄美海運 時刻表
+      url: https://www.aline-ferry.com/amami/time/
+  stops:
+    - port: 平土野港
+      area: 徳之島
+      day: 1
+      depart: "12:50"
+    - port: 古仁屋港
+      area: 奄美大島
+      day: 1
+      arrive: "15:10"
+      depart: "15:30"
+    - port: 名瀬港
+      area: 奄美大島
+      day: 1
+      arrive: "17:50"
+      depart: "18:20"
+    - port: 喜界港
+      area: 喜界島
+      day: 1
+      arrive: "20:30"
+      depart: "21:00"
+    - port: 鹿児島北埠頭
       area: 鹿児島
       day: 2
       arrive: "08:30"
