@@ -136,3 +136,21 @@ routes:
     ports: [名瀬]
     amami_ports: [名瀬]
     notes: 速報ではなく週次・月次の予定まとめとして扱う（仕様Q8）
+
+# 貨物船
+#
+# 奄美群島に発着する貨物船。旅客は乗船できない。
+# 発表の形式が各社まちまちで、自動で追うには確かめきれていないため、
+# 読者には各社の公式ページを案内する。
+#
+# 名瀬港に定期で入る貨物航路は、鹿児島県の港湾案内および各社公式で確認した。
+cargo:
+  - label: マルエーフェリー 阪神航路
+    ports: 神戸〜大阪〜志布志〜名瀬〜那覇
+    url: https://www.aline-ferry.com/hanshin/time/
+    note: 月ごとの運航スケジュールが公開されています
+
+  - label: 共同組海運
+    ports: 鹿児島〜奄美群島
+    url: https://www.kyoudougumikaiun.co.jp/page2
+    note: 配船予定表が公開されています

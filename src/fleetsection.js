@@ -55,34 +55,14 @@ function span(v) {
     jpDateTime(v.arriveAt) + '　' + last.port + '着</div>';
 }
 
-/** 航行中の1隻。いまどこにいるかを添える */
+/** 航行中の1隻 */
 function runningBox(v, now, note) {
-  const last = [...v.stops].reverse().find((s) => s.departAt && s.departAt <= now);
-  const next = v.stops.find((s) => s.arriveAt && s.arriveAt > now);
-  const where = [
-    last ? '直前の寄港　' + last.port + ' ' + last.depart + '発' : null,
-    next ? '次の寄港　　' + next.port + ' ' + next.arrive + '着' : null,
-  ].filter(Boolean).join('<br>');
-
-  return box(tag('航行中', RUNNING) + shipLine(v) + span(v) + (where ? sub(where) : '') + noteLine(note), RUNNING);
+  return box(tag('航行中', RUNNING) + shipLine(v) + span(v) + noteLine(note), RUNNING);
 }
 
-/**
- * 次に出港する1隻。
- *
- * 読者は奄美にいる。名瀬に何時に着くか、名瀬を何時に出るかが知りたいことなので、
- * 寄港地の先頭ではなく名瀬の時刻を示す。名瀬が始発や終着のときは次の寄港地を出す。
- */
+/** 次に出港する1隻 */
 function nextBox(v, note) {
-  const naze = v.stops.find((s) => s.port === '名瀬港' && (s.arrive || s.depart));
-  const calls = naze
-    ? naze.port + '　' + [
-        naze.arrive ? jpDateTime(naze.arriveAt) + '着' : null,
-        naze.depart ? naze.depart + '発' : null,
-      ].filter(Boolean).join('　')
-    : v.stops.slice(1, 3).map((s) => s.port + ' ' + jpDateTime(s.arriveAt) + '着').join('<br>');
-
-  return box(tag('次の出港', NEXT) + shipLine(v) + span(v) + (calls ? sub(calls) : '') + noteLine(note), NEXT);
+  return box(tag('次の出港', NEXT) + shipLine(v) + span(v) + noteLine(note), NEXT);
 }
 
 /**
@@ -100,7 +80,7 @@ function noticeFor(v, events, labelOf) {
 }
 
 /** 片方向ぶんの並び */
-function directionBlock({ voyages, label, summary, now, events, labelOf }) {
+function directionBlock({ voyages, label, now, events, labelOf }) {
   const running = voyages.filter((v) => v.departAt <= now && now < v.arriveAt);
   const next = voyages.find((v) => v.departAt > now) ?? null;
   if (!running.length && !next) return '';
@@ -112,8 +92,7 @@ function directionBlock({ voyages, label, summary, now, events, labelOf }) {
         '<div style="color:' + COLOR.muted + '">いま航行している便はありません</div>', COLOR.line)
     : '';
 
-  return '<h4 style="margin:14px 0 8px;font-size:1em">' + label +
-    '<span style="font-weight:400;font-size:0.82em;color:' + COLOR.muted + '">　' + summary + '</span></h4>' +
+  return '<h4 style="margin:14px 0 8px;font-size:1em">' + label + '</h4>' +
     idle + running.map((v) => runningBox(v, now, noticeFor(v, events, labelOf))).join('') +
     (next ? nextBox(next, noticeFor(next, events, labelOf)) : '');
 }

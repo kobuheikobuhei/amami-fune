@@ -9,6 +9,7 @@
 
 import { STATUS_LABEL } from './lib/status.js';
 import { buildFleetSection } from './fleetsection.js';
+import { buildCargoSection } from './cargosection.js';
 import { fleetOperatorIds } from './fleet/voyages.js';
 
 const DISCLAIMER =
@@ -54,7 +55,7 @@ function routeGuide(routes, pageIds) {
 }
 
 export function buildDailyPage({
-  routes = [], pageIds = {}, events = [], fleet = null,
+  routes = [], pageIds = {}, events = [], fleet = null, cargo = [],
   nav = '', alert = '', scope = '', now,
 }) {
   return {
@@ -74,6 +75,7 @@ export function buildDailyPage({
         labelOf: (e) => label(e) + 'の発表があります',
       }) +
       '</div>' +
+      buildCargoSection(cargo) +
       routeGuide(routes, pageIds) +
       scope +
       '<hr>' +

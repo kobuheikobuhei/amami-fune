@@ -26,6 +26,7 @@ export function loadConfig() {
     operators: routes.operators,
     sources: sources.sources,
     referenceLinks: sources.reference_links ?? [],
+    cargo: routes.cargo ?? [],
     timetables,
     userAgent,
   };

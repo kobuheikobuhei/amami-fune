@@ -45,6 +45,7 @@ const page = buildDailyPage({
   pageIds: readPageIds(),
   events: Object.values(eventsByRoute).flat(),
   fleet: fleetView,
+  cargo: cfg.cargo,
   scope: buildScopeNotice({ routes: cfg.routes, routeIds, operators: cfg.operators }),
   now,
 });

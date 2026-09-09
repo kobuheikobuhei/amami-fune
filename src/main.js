@@ -293,6 +293,7 @@ async function main() {
       pageIds,
       events: Object.values(eventsByRouteAll).flat(),
       fleet: fleetView,
+      cargo: cfg.cargo,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
       scope: scopeNotice,
       alert: typhoonAlert,
