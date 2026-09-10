@@ -78,8 +78,104 @@ export function shouldRun(mode, previousLastRun, now) {
   if (jstDate(now) !== jstDate(previousLastRun)) return true;
 
   const minutes = (new Date(now) - new Date(previousLastRun)) / 60000;
-  // 1回の起動の中で12分おきに5周するため、周の間隔より少し短くしておく。
-  // 20分だと0・24・48分の周で通り（平常は1時間に3回）、
-  // 10分だと毎周通る（荒天は1時間に5回）。
-  return minutes >= (mode === 'rough' ? 10 : 20);
+  // いつ収集するかは節目の一覧（checkpoints）が決める。ここに残すのは
+  // 二重に収集しないための下限だけ。節目の最小間隔は10分なので、
+  // 5分にしておけば正当な節目を弾かない。
+  return minutes >= 5;
+}
+
+// ── 節目の時刻 ──────────────────────────────────
+//
+// 12分ごとという機械的な刻みでは、18:00に鹿児島を出た船が
+// 18:11まで「次の出港」のまま残る。意味のある時刻はこちらで分かっている。
+//
+// ・船が出る時刻と着く時刻（公式の時刻表から導く。表を直せば自動で追従する）
+// ・発表が出やすい時間帯（翌日の運航可否は前日の夕方から夜に出る）
+// ・日付が変わる直前（ページの「今日」が切り替わる）
+//
+// 途中の寄港地は入れない。表示していないため、更新する意味がない。
+
+/** 発表が出やすい時間帯。この間は細かく見る */
+const NOTICE_WINDOWS = [
+  { from: '05:00', to: '08:40', every: 20 }, // 当日朝の判断と、名瀬着・鹿児島着
+  { from: '16:00', to: '22:00', every: 20 }, // 翌日の運航可否の発表
+];
+
+const toMinutes = (hhmm) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
+
+const toHHMM = (minutes) => {
+  const m = ((minutes % 1440) + 1440) % 1440;
+  return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+};
+
+/**
+ * 船が出る時刻と着く時刻を時刻表から集める。
+ * 出発港の出港と、終着港の入港だけを見る。
+ */
+export function shipTransitions(timetables = {}) {
+  const out = new Map();
+  // 同じ時刻に複数の港が重なる（上り2便がどちらも8:30に鹿児島へ着く）。
+  // 上書きすると片方の名前が消えるので、まとめる。
+  const add = (time, label) => {
+    if (!time) return;
+    const has = out.get(time);
+    if (!has) out.set(time, label);
+    else if (!has.includes(label)) out.set(time, has + '・' + label);
+  };
+  for (const t of Object.values(timetables)) {
+    const stops = t.stops ?? [];
+    if (!stops.length) continue;
+    add(stops[0].depart, stops[0].port + '発');
+    add(stops[stops.length - 1].arrive, stops[stops.length - 1].port + '着');
+  }
+  return out;
+}
+
+/** 1日ぶんの節目を「時刻 → 理由」で返す */
+export function checkpoints(timetables = {}) {
+  const map = new Map();
+  const put = (hhmm, why) => {
+    const key = toHHMM(toMinutes(hhmm));
+    map.set(key, map.has(key) ? map.get(key) + '／' + why : why);
+  };
+
+  // 日付が変わったらページの「今日」が切り替わる
+  put('00:05', '日付の切り替わり');
+
+  for (const [time, why] of shipTransitions(timetables)) put(time, why);
+
+  for (const w of NOTICE_WINDOWS) {
+    for (let m = toMinutes(w.from); m <= toMinutes(w.to); m += w.every) put(toHHMM(m), '発表の確認');
+  }
+
+  return new Map([...map.entries()].sort(([a], [b]) => a.localeCompare(b)));
+}
+
+const JST_OFFSET_MS = 9 * 3600 * 1000;
+
+/**
+ * 次の節目を返す。荒天のときは節目の間も細かく見る。
+ * 節目まで待つのは呼び出し側（ワークフロー）の仕事。
+ */
+export function nextCheckpoint(now, timetables = {}, { mode = 'normal', roughEvery = 10 } = {}) {
+  const jst = new Date(new Date(now).getTime() + JST_OFFSET_MS);
+  const nowMinutes = jst.getUTCHours() * 60 + jst.getUTCMinutes() + jst.getUTCSeconds() / 60;
+
+  const list = [...checkpoints(timetables).entries()].map(([time, why]) => ({ minutes: toMinutes(time), time, why }));
+
+  // 荒天のときは、節目を待たずに一定の間隔でも見る
+  if (mode === 'rough') {
+    for (let m = 0; m < 1440; m += roughEvery) {
+      if (!list.some((c) => c.minutes === m)) list.push({ minutes: m, time: toHHMM(m), why: '荒天' });
+    }
+    list.sort((a, b) => a.minutes - b.minutes);
+  }
+
+  const ahead = list.find((c) => c.minutes > nowMinutes) ?? { ...list[0], minutes: list[0].minutes + 1440 };
+  const seconds = Math.max(30, Math.round((ahead.minutes - nowMinutes) * 60));
+
+  return { time: ahead.time, why: ahead.why, seconds };
 }

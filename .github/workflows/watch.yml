@@ -1,15 +1,19 @@
 name: 船舶動静の監視
 
-# 毎時0分に起動を試みる。
+# 毎時0分に起動を試み、起動できたら節目の時刻まで待ちながら繰り返す。
 #
 # GitHub Actions の定期実行は混雑時に遅延・間引きされる。15分ごとを指定して
 # いたが、実測では1日5〜6回・平均3.7時間おきしか起動しなかった。1日1回の
 # 点検も3時間半遅れており、頻度の細かい指定ほど落とされやすい。
+# 起動そのものは相手任せなので、起動できた時間を無駄にしない作りにする。
 #
-# そこで指定を毎時に粗くし（通りやすくするため）、1回の起動の中で12分おきに
-# 5周する。起動が数時間おきでも、起動できた1時間は細かく見られる。
-# 何周目に実際に収集するかは、これまでどおりモードごとの間隔で決める
-# （平常20分・荒天10分）。
+# 待ち時間は機械的な刻みではなく、意味のある時刻から決める。船が出る時刻と
+# 着く時刻は公式の時刻表として持っており（data/timetable.yml）、発表が出やすい
+# 時間帯も分かっている。12分ごとに起きていた頃は、18:00に鹿児島を出た船が
+# 18:11まで「次の出港」のまま残っていた。
+#
+# 次の節目が持ち時間（MAX_MINUTES）を超えるときは、そこで終えて実行環境を
+# 解放する。日中の空き時間を寝て過ごさないため。
 on:
   schedule:
     - cron: '0 * * * *'
@@ -26,7 +30,7 @@ on:
 
 # 1回の起動が50分ほど走るため、次の起動と重なりうる。
 # 重なると同じ台帳を見た2つのジョブが同じ欠航を二度投稿しかねないので、
-# 打ち消さずに順番待ちさせる。
+# 打ち消さずに順番待ちさせる。前のジョブが終わり次第、次が始まる。
 concurrency:
   group: watch
   cancel-in-progress: false
@@ -42,8 +46,9 @@ jobs:
     # メール通知が未設定のときに通知手順を飛ばせるよう、ここで環境変数へ移す。
     env:
       MAIL_CONFIGURED: ${{ secrets.MAIL_USERNAME != '' }}
-      ROUNDS: 5
-      SPACING_SECONDS: 720
+      # 1回の起動を何分まで生かすか。毎時起動されるので既定は50分。
+      # 長くすれば切れ目が減るが、そのぶん実行環境を占有する。
+      MAX_MINUTES: 50
 
     steps:
       - uses: actions/checkout@v5
@@ -75,10 +80,12 @@ jobs:
           mkdir -p state tmp
           : > tmp/notify-all.md
           failed=0
+          round=0
+          deadline=$(( $(date +%s) + MAX_MINUTES * 60 ))
 
-          for round in $(seq 1 "$ROUNDS"); do
-            if [ "$round" -gt 1 ]; then sleep "$SPACING_SECONDS"; fi
-            echo "──── ${round}／${ROUNDS} 周目 ────"
+          while true; do
+            round=$(( round + 1 ))
+            echo "──── ${round} 周目（$(date -u +%H:%MZ)）────"
 
             if ! node src/main.js ${{ inputs.force && '--force' || '' }}; then
               echo "この周は失敗しました。残りの周は続けます。"
@@ -103,6 +110,20 @@ jobs:
                 echo "状態の保存に失敗しました。次の周でやり直します。"
               fi
             fi
+
+            # 次の節目を、公式の時刻表と発表の出やすい時間帯から決める。
+            # 取れなかったときは10分後に置く（止めるより粗く続ける）。
+            next=$(node src/tools/next-check.js) || next="600 ?? 既定の待ち"
+            wait_seconds=${next%% *}
+            label=${next#* }
+
+            if [ $(( $(date +%s) + wait_seconds )) -ge "$deadline" ]; then
+              echo "次の節目（${label}）はこのジョブの持ち時間を超えます。ここで終わります。"
+              break
+            fi
+
+            echo "次の節目 ${label} まで ${wait_seconds} 秒待ちます"
+            sleep "$wait_seconds"
           done
 
           exit "$failed"
