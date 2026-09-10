@@ -1,13 +1,18 @@
 name: 船舶動静の監視
 
-# 15分ごとに起動を試みる。
-# GitHub Actions の定期実行は混雑時に大きく遅れることがあり、
-# 実測で4時間空いた例もあった。起動の機会を増やして遅れの影響を減らす。
-# 実際に収集を行う間隔は変えない（平常1時間・荒天30分）。
-# 起動しても間隔に達していなければ、その回は何もせず終了する。
+# 毎時0分に起動を試みる。
+#
+# GitHub Actions の定期実行は混雑時に遅延・間引きされる。15分ごとを指定して
+# いたが、実測では1日5〜6回・平均3.7時間おきしか起動しなかった。1日1回の
+# 点検も3時間半遅れており、頻度の細かい指定ほど落とされやすい。
+#
+# そこで指定を毎時に粗くし（通りやすくするため）、1回の起動の中で12分おきに
+# 5周する。起動が数時間おきでも、起動できた1時間は細かく見られる。
+# 何周目に実際に収集するかは、これまでどおりモードごとの間隔で決める
+# （平常20分・荒天10分）。
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -19,6 +24,9 @@ on:
         type: boolean
         default: false
 
+# 1回の起動が50分ほど走るため、次の起動と重なりうる。
+# 重なると同じ台帳を見た2つのジョブが同じ欠航を二度投稿しかねないので、
+# 打ち消さずに順番待ちさせる。
 concurrency:
   group: watch
   cancel-in-progress: false
@@ -29,11 +37,13 @@ permissions:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 70
     # 条件式の中では secrets を直接参照できない。
     # メール通知が未設定のときに通知手順を飛ばせるよう、ここで環境変数へ移す。
     env:
       MAIL_CONFIGURED: ${{ secrets.MAIL_USERNAME != '' }}
+      ROUNDS: 5
+      SPACING_SECONDS: 720
 
     steps:
       - uses: actions/checkout@v5
@@ -59,36 +69,56 @@ jobs:
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
-        run: node src/main.js ${{ inputs.force && '--force' || '' }}
-
-      # state/ は実行間で引き継ぐ必要がある。
-      # ここに台帳・スナップショット・モードが入っており、
-      # コミットし損ねると同じ欠航を二度投稿することになる。
-      - name: 状態の保存
         run: |
           git config user.name  "amami-fune-bot"
           git config user.email "bot@users.noreply.github.com"
-          mkdir -p state
-          git add -A state/
-          if git diff --staged --quiet; then
-            echo "状態に変化なし"
-          else
-            git commit -m "state: $(date -u +%Y-%m-%dT%H:%MZ) の収集結果"
-            git pull --rebase --autostash
-            git push
-          fi
+          mkdir -p state tmp
+          : > tmp/notify-all.md
+          failed=0
+
+          for round in $(seq 1 "$ROUNDS"); do
+            if [ "$round" -gt 1 ]; then sleep "$SPACING_SECONDS"; fi
+            echo "──── ${round}／${ROUNDS} 周目 ────"
+
+            if ! node src/main.js ${{ inputs.force && '--force' || '' }}; then
+              echo "この周は失敗しました。残りの周は続けます。"
+              failed=1
+            fi
+
+            # 通知は周ごとに上書きされるため、消える前に集めておく。
+            if [ -s state/notify.md ]; then
+              cat state/notify.md >> tmp/notify-all.md
+              printf '\n' >> tmp/notify-all.md
+            fi
+
+            # state/ は実行間で引き継ぐ必要がある。台帳を失うと、すでに投稿した
+            # 欠航をもう一度投稿することになる。周ごとに保存し、途中で
+            # ジョブが止まってもそこまでの結果を残す。
+            git add -A state/
+            if git diff --staged --quiet; then
+              echo "状態に変化なし"
+            else
+              git commit -m "state: $(date -u +%Y-%m-%dT%H:%MZ) の収集結果"
+              if ! (git pull --rebase --autostash && git push); then
+                echo "状態の保存に失敗しました。次の周でやり直します。"
+              fi
+            fi
+          done
+
+          exit "$failed"
 
       - name: 通知の要否を判定
         id: notify
+        if: always()
         run: |
-          if [ -s state/notify.md ] && [ -n "$(tr -d '[:space:]' < state/notify.md)" ]; then
+          if [ -s tmp/notify-all.md ] && [ -n "$(tr -d '[:space:]' < tmp/notify-all.md)" ]; then
             echo "send=true" >> "$GITHUB_OUTPUT"
           else
             echo "send=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: メール通知
-        if: steps.notify.outputs.send == 'true' && env.MAIL_CONFIGURED == 'true'
+        if: always() && steps.notify.outputs.send == 'true' && env.MAIL_CONFIGURED == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -99,7 +129,7 @@ jobs:
           from: 船舶動静ボット
           to: ${{ secrets.MAIL_TO }}
           subject: '[船舶動静] 確認が必要な項目があります'
-          body: file://state/notify.md
+          body: file://tmp/notify-all.md
 
       # 収集そのものが落ちた場合も知らせる。
       # 気づかないまま止まっているのが最も危険な状態のため。

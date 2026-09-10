@@ -120,6 +120,8 @@ export function shouldRun(mode, previousLastRun, now) {
   if (jstDate(now) !== jstDate(previousLastRun)) return true;
 
   const minutes = (new Date(now) - new Date(previousLastRun)) / 60000;
-  // 起動の揺らぎで1回飛ばされないよう、目標より少し手前で通す
-  return minutes >= (mode === 'rough' ? 25 : 55);
+  // 1回の起動の中で12分おきに5周するため、周の間隔より少し短くしておく。
+  // 20分だと0・24・48分の周で通り（平常は1時間に3回）、
+  // 10分だと毎周通る（荒天は1時間に5回）。
+  return minutes >= (mode === 'rough' ? 10 : 20);
 }

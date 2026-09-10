@@ -76,7 +76,7 @@ Windows の PowerShell は既定でスクリプトの実行を禁止している
 | `state/diagnostics.json` | 直近の実行結果（収集件数・投稿件数・認証情報の登録状況） |
 | `state/notify.md` | 確認が必要な項目。空なら問題なし |
 | `state/health.json` | 監視先ごとの取得の成否と連続失敗回数 |
-| `state/mode.json` | 平常モードか荒天モードか |
+| `state/mode.json` | 平常モードか荒天モードか。`last_run` が最後に収集した時刻 |
 | `state/events.jsonl` | これまでに検出した全イベントの台帳 |
 | `state/fleet.json` | どの船がいつ出港するかの予定。下り・上りとも（両社公式から取得） |
 
