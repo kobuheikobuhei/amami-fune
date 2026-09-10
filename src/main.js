@@ -6,6 +6,7 @@
 
 import { loadEnvLocal } from './lib/env.js';
 import { loadConfig, activeRouteIds } from './lib/config.js';
+import { jstDate } from './lib/text.js';
 
 loadEnvLocal();
 import { watchAline } from './watchers/aline.js';
@@ -18,6 +19,7 @@ import {
   readHealth, writeHealth, recordSuccess, recordFailure,
   readMode, writeMode, readPageIds, writePageIds, writeNotification, writeDiagnostics,
   readFleet, writeFleet,
+  readMarixDetails, writeMarixDetails, pruneMarixDetails,
 } from './lib/state.js';
 import { toCandidates, diffAgainstLedger, publishDecision, ongoingNotices, normalShips } from './curator.js';
 import { buildArticle } from './writer.js';
@@ -107,6 +109,9 @@ async function main() {
     [...latestEventsByKey(readEvents()).values()].map((e) => e.source_url).filter(Boolean)
   );
 
+  // マリックスの個別ページの取得結果。1枚1MBあるので二度と取りに行かない。
+  const marixDetails = readMarixDetails();
+
   const health = readHealth();
   const observations = [];
   const seedOnlySources = new Set();
@@ -116,7 +121,12 @@ async function main() {
     if (firstRun) seedOnlySources.add(source.id);
 
     try {
-      const r = await WATCHERS[source.id](source, { userAgent: cfg.userAgent, known: knownUrls });
+      const r = await WATCHERS[source.id](source, {
+        userAgent: cfg.userAgent,
+        known: knownUrls,
+        details: marixDetails,
+        today: jstDate(now),
+      });
       observations.push(...r.observations);
       recordSuccess(health, source.id, r.fetchedAt);
       log('  ok   ' + source.id + '  記事' + r.observations.length + '件' + (firstRun ? ' [初回：記録のみ]' : ''));
@@ -347,6 +357,7 @@ async function main() {
     writeHealth(health);
     writeMode(mode);
     if (fleet) writeFleet(fleet);
+    writeMarixDetails(pruneMarixDetails(marixDetails, jstDate(now)));
     writePageIds(pageIds);
     writeNotification(notify.length ? ['# 船舶動静ボット 通知 (' + now + ')', '', ...notify] : []);
   }

@@ -10,7 +10,9 @@
 version: 1
 updated: 2026-09-04
 
-user_agent: "AmamiFuneBot/1.0 (+<サイトURL>; contact: <連絡用メール>)"
+# User-Agent は src/lib/config.js が組み立てる。
+# サイトのURLは必ず載せ、CONTACT_EMAIL が設定されていれば連絡先も添える。
+# 例示のまま example.com を送っていたことがあり、それでは先方が問い合わせようがない。
 
 sources:
 

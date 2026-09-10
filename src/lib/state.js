@@ -160,3 +160,30 @@ export function readFleet() {
 export function writeFleet(data) {
   writeJson(FLEET_PATH, data);
 }
+
+// ── マリックスの個別ページの取得結果 ──────────────
+// 個別ページは1枚1MBある。船名と条件付きの港だけを使うので、
+// 一度取ったら覚えておき、二度と取りに行かない。
+// 通常運航や過去の便は台帳に載らないため、これが無いと毎回取り直しになる。
+
+const MARIX_DETAIL_PATH = join(STATE_DIR, 'marix-details.json');
+
+export function readMarixDetails() {
+  return readJson(MARIX_DETAIL_PATH, {});
+}
+
+export function writeMarixDetails(map) {
+  writeJson(MARIX_DETAIL_PATH, map);
+}
+
+/** 古くなった分を落とす。過去の便は二度と使わない */
+export function pruneMarixDetails(map, today, keepDays = 14) {
+  const limit = new Date(today + 'T00:00:00Z');
+  limit.setUTCDate(limit.getUTCDate() - keepDays);
+  const cut = limit.toISOString().slice(0, 10);
+  const out = {};
+  for (const [url, v] of Object.entries(map)) {
+    if (!v?.date || v.date >= cut) out[url] = v;
+  }
+  return out;
+}

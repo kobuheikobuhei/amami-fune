@@ -26,7 +26,7 @@ function extractBracket(title) {
  * 一覧ページの項目を、RSSと同じ形の観測結果へ変換する。
  * 一覧は状態が class として構造化されており、RSSより多くの便を載せる。
  */
-async function fromList({ userAgent, known, source }) {
+async function fromList({ userAgent, known, source, details = {}, today }) {
   const { items, fetchedAt } = await fetchList({ userAgent });
   const observations = [];
 
@@ -36,16 +36,25 @@ async function fromList({ userAgent, known, source }) {
     // 終わりの無い案内として「継続中」に紛れ込む。
     if (!it.service_date) continue;
 
+    // 個別ページは1枚1MBある。船名と条件付きの港だけを使うので、
+    // 一度取ったら覚えておく。通常運航や過去の便は台帳に載らないため、
+    // 覚えておかないと毎回取り直しになる（実測で1回10MB）。
     let ship = null;
     let portNotes = [];
-    if (!known.has(it.url)) {
+    const cached = details[it.url];
+
+    if (cached) {
+      ship = cached.ship ?? null;
+      portNotes = cached.port_notes ?? [];
+    } else if (!today || it.service_date >= today) {
+      // 過去の便は取りに行かない。もう表示に使わない。
       try {
         const d = await fetchDetail(it.url, { userAgent });
         ship = d.ship;
         portNotes = d.port_notes;
+        details[it.url] = { ship: d.ship, port_notes: d.port_notes, date: it.service_date };
       } catch { /* 取れなくても一覧の情報で続ける */ }
     }
-
     const entries = it.service_date
       ? [{
           service_date: it.service_date,
@@ -169,9 +178,9 @@ async function fromRss(source, { userAgent, known = new Set() }) {
  * RSSの10件に対して14便が載る。9月2日から5日の欠航はRSSに無かった。
  * 一覧が取れないときはRSSへ切り替える。
  */
-export async function watchMarix(source, { userAgent, known = new Set() }) {
+export async function watchMarix(source, { userAgent, known = new Set(), details = {}, today = null }) {
   try {
-    const r = await fromList({ userAgent, known, source });
+    const r = await fromList({ userAgent, known, source, details, today });
     if (r.observations.length) return r;
   } catch {
     // 一覧の作りが変わった場合はRSSで続ける

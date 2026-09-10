@@ -94,8 +94,12 @@ export function merge({ marue, marix, dates, direction }) {
  *
  * マルエーのPDFは1回だけ取り、両方向をそこから読む。
  * マリックスは日付ごとの問い合わせなので、向きごとに日数分だけ呼ぶ。
+ *
+ * 窓は表示に使う範囲だけにする。「航行中」は前日に出た便、「次の出港」は
+ * 当日か翌日なので、前日から3日先あれば足りる。7日先まで問い合わせていた頃は
+ * マリックスの検索へ1回18往復・圧縮後8.4MBを送らせていた。
  */
-export async function fetchFleet({ userAgent, now, back = 1, ahead = 7, timetables }) {
+export async function fetchFleet({ userAgent, now, back = 1, ahead = 3, timetables }) {
   const today = jstDate(now);
   const dates = windowDates(today, back, ahead);
 

@@ -17,9 +17,13 @@ export function loadConfig() {
   const sources = loadYaml('data/sources.yml');
   const timetables = loadYaml('data/timetable.yml');
 
-  const userAgent = sources.user_agent
-    .replace('<サイトURL>', process.env.SITE_URL || 'https://example.blogspot.com')
-    .replace('<連絡用メール>', process.env.CONTACT_EMAIL || 'contact@example.com');
+  // 相手先のサイト運営者から連絡が取れるように、素性の分かるUser-Agentを送る。
+  // 連絡先が未設定のときに example.com を送っていたことがあり、
+  // それでは問い合わせようがない。未設定なら連絡先の部分を落とし、
+  // 少なくともサイトのURLは必ず載せる。
+  const site = process.env.SITE_URL || 'https://amami-fune.blogspot.com';
+  const contact = process.env.CONTACT_EMAIL || null;
+  const userAgent = 'AmamiFuneBot/1.0 (+' + site + (contact ? '; contact: ' + contact : '') + ')';
 
   return {
     routes: routes.routes,
