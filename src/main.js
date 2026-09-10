@@ -11,7 +11,8 @@ loadEnvLocal();
 import { watchAline } from './watchers/aline.js';
 import { watchMarix } from './watchers/marix.js';
 import { watchKyodogumi } from './watchers/kyodogumi.js';
-import { watchWeather, decideMode, shouldRun } from './watchers/weather.js';
+import { watchWeather } from './watchers/weather.js';
+import { decideMode, shouldRun } from './scheduler.js';
 import {
   readSnapshot, writeSnapshot, readEvents, latestEventsByKey, appendEvent,
   readHealth, writeHealth, recordSuccess, recordFailure,
