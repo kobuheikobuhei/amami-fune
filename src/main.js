@@ -318,6 +318,7 @@ async function main() {
       routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),
       eventsByRoute,
       noticesByRoute,
+      pageIds,
       now,
     });
     const r = await publisher.upsertPage(pageIds.__typhoon?.id ?? null, typhoonPage);

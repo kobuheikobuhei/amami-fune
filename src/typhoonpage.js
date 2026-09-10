@@ -9,8 +9,11 @@
 // 進路の予想は載せるが、そこから欠航を推測して書くことはしない（仕様Q28）。
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
+import { serviceRow } from './style.js';
 import { jstDate } from './lib/text.js';
 import { NAZE } from './watchers/typhoon.js';
+
+const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 
 const DISCLAIMER =
   '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
@@ -142,46 +145,158 @@ function warningSection(weather) {
     '<p><a href="https://www.jma.go.jp/bosai/warning/#area_type=offices&area_code=460040" target="_blank" rel="noopener">気象庁　奄美地方の警報・注意報</a></p>';
 }
 
-/** 3社の運航状況の要約 */
-function operationSection(routes, eventsByRoute, noticesByRoute, today) {
-  const blocks = routes.map(function (route) {
-    const events = (eventsByRoute[route.id] || [])
-      .filter(function (e) { return (e.service_date_end || e.service_date) >= today; })
-      .sort(function (a, b) { return a.service_date.localeCompare(b.service_date); })
-      .slice(0, 6);
+// ── 運航の発表 ───────────────────────────────────
+//
+// 台風のページで知りたいのは「この数日、船は出るのか」であって、
+// 2か月先のドック予定ではない。実際、11月のドック運休が4件並んでいた。
+// 期間を今日から数日に絞る。
+//
+// 並べる軸も航路ではなく日付にする。台風のときは日付が主語になるため、
+// 「今日の便はどうか」を探しやすい。
+//
+// 船に関する案内（ドック入り・機関故障）は日付の並びに混ぜない。
+// 船が入渠しても別の船が入れば便は動くので、同じ並びに置くと
+// 「その日は船が無い」と読まれてしまう。
 
-    const items = events.length
-      ? events.map(function (e) {
-          const color = STATUS_COLOR[e.status];
-          const label = e.detail || STATUS_LABEL[e.status];
-          const when = e.service_date_end && e.service_date_end !== e.service_date
-            ? e.service_date.slice(5).replace('-', '/') + '〜' + e.service_date_end.slice(5).replace('-', '/')
-            : e.service_date.slice(5).replace('-', '/');
-          const link = e.published_post && e.published_post.url
-            ? '　<a href="' + e.published_post.url + '">詳細</a>' : '';
-          return '<li>' + when + '　<strong style="color:' + color + '">' + label + '</strong>' + link + '</li>';
-        }).join('')
-      : '<li style="color:#6b7280">欠航・ダイヤ変更の発表はありません</li>';
+const HORIZON_DAYS = 3; // 今日・明日・明後日
 
-    const notices = (noticesByRoute[route.id] || []).map(function (n) {
-      const label = n.detail || STATUS_LABEL[n.status];
-      const ship = n.ship ? n.ship + 'は' : '';
-      return '<li style="color:#b45309">' + ship + '<strong>' + label + '</strong>（継続中）</li>';
-    }).join('');
-
-    return '<h3>' + route.name + '</h3><ul>' + notices + items + '</ul>';
-  }).join('');
-
-  return '<h2>運航状況</h2>' + blocks;
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
 }
 
-export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, nav = "", now }) {
+function jpDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const w = '日月火水木金土'[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  return m + '月' + d + '日(' + w + ')';
+}
+
+function heading(date, index) {
+  const name = index === 0 ? '今日' : index === 1 ? '明日' : null;
+  return (name ? name + '　' : '') + jpDate(date);
+}
+
+/** その日にかかる発表。期間の案内は期間中の全日にかかる */
+function eventsOn(events, date) {
+  return events.filter((e) =>
+    e.service_date <= date && (e.service_date_end ?? e.service_date) >= date);
+}
+
+/** 船に関する案内かどうか。便の有無を意味しないため分けて示す */
+function isShipLevel(e) {
+  return !e.origin && !e.direction && /ドック|入渠|機関故障/.test(e.detail ?? '');
+}
+
+function periodText(e) {
+  const from = e.service_date.slice(5).replace('-', '/');
+  if (!e.service_date_end || e.service_date_end === e.service_date) return from;
+  return from + '〜' + e.service_date_end.slice(5).replace('-', '/');
+}
+
+/** 期間内に便の発表が何件あるか。先頭の案内を出すかの判断に使う */
+function countUpcoming({ routes, eventsByRoute, today }) {
+  const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(today, i));
+  const all = routes.flatMap((route) => eventsByRoute[route.id] || []);
+  const seen = new Set();
+  for (const date of dates) {
+    for (const e of eventsOn(all, date)) {
+      if (!isShipLevel(e)) seen.add(e.event_key || (e.service_date + e.ship + e.origin));
+    }
+  }
+  return seen.size;
+}
+
+function operationSection({ routes, eventsByRoute, noticesByRoute, pageIds, today }) {
+  const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(today, i));
+  const horizonEnd = dates[dates.length - 1];
+
+  const all = routes.flatMap((route) =>
+    (eventsByRoute[route.id] || []).map((e) => ({ ...e, route })));
+
+  // 日付ごとの便の発表
+  const days = dates.map((date, i) => {
+    const hits = eventsOn(all, date)
+      .filter((e) => !isShipLevel(e))
+      .sort((a, b) => (a.origin || '').localeCompare(b.origin || ''));
+
+    const rows = hits.length
+      ? hits.map((e) => serviceRow({
+          when: e.ship || e.route.short || e.route.name,
+          statusText: e.detail || STATUS_LABEL[e.status],
+          color: STATUS_COLOR[e.status],
+          segment: [
+            e.origin ? e.origin + '発' : null,
+            DIRECTION_LABEL[e.direction] || null,
+            e.ship ? e.route.short || e.route.name : null,
+          ].filter(Boolean).join('　'),
+          href: e.published_post && e.published_post.url,
+        })).join('')
+      : '<p style="color:#6b7280;margin:4px 0 14px">発表はありません</p>';
+
+    return '<h3 style="margin:18px 0 4px;font-size:1.05em">' + heading(date, i) + '</h3>' + rows;
+  }).join('');
+
+  // 船に関する案内。期間にかかるものだけ
+  const ships = all
+    .filter(isShipLevel)
+    .filter((e) => e.service_date <= horizonEnd && (e.service_date_end ?? e.service_date) >= today);
+
+  const notices = routes.flatMap((route) => (noticesByRoute[route.id] || []));
+
+  const shipItems = [
+    ...ships.map((e) =>
+      '<li>' + (e.ship ? e.ship + 'は' : '') + '<strong>' + (e.detail || STATUS_LABEL[e.status]) +
+      '</strong>（' + periodText(e) + '）</li>'),
+    ...notices.map((n) =>
+      '<li>' + (n.ship ? n.ship + 'は' : '') + '<strong>' + (n.detail || STATUS_LABEL[n.status]) +
+      '</strong>（継続中）</li>'),
+  ].join('');
+
+  const shipBlock = shipItems
+    ? '<h3 style="margin:20px 0 4px;font-size:1.05em">船の状況</h3>' +
+      '<ul style="margin:4px 0 6px;padding-left:1.3em;line-height:2;color:#b45309">' + shipItems + '</ul>' +
+      '<p style="font-size:0.9em;color:#555;margin:0 0 10px;line-height:1.8">' +
+      'ドック入りや故障で1隻が離れていても、別の船が同じ便を担うことがあります。' +
+      'その日に動く船は<a href="' + (pageIds.__daily && pageIds.__daily.url ? pageIds.__daily.url : '#') +
+      '" style="color:#1d4ed8;font-weight:600">運航状況</a>でご覧いただけます。</p>'
+    : '';
+
+  const links = routes
+    .map((r) => ({ label: r.short || r.name, url: pageIds[r.id] && pageIds[r.id].url }))
+    .filter((x) => x.url)
+    .map((x) => '<a href="' + x.url + '" style="color:#1d4ed8;font-weight:600">' + x.label + '</a>')
+    .join('<span style="color:#cbd5e1"> ｜ </span>');
+
+  return '<h2 id="unko">欠航・ダイヤ変更の発表</h2>' +
+    '<p style="font-size:0.92em;color:#555;margin:0 0 4px;line-height:1.8">' +
+    '今日からの' + HORIZON_DAYS + '日分です。翌日の運航可否は、前日の夕方から夜にかけて' +
+    '発表されることが多くなっています。</p>' +
+    days +
+    shipBlock +
+    (links
+      ? '<p style="font-size:0.92em;color:#555;margin:14px 0 0;line-height:2">' +
+        'これより先の発表は、航路ごとのページに掲載しています。<br>' + links + '</p>'
+      : '');
+}
+
+export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, pageIds = {}, nav = "", now }) {
   const today = jstDate(now);
   const routePorts = routes && routes.length ? (routes[0].ports || []) : [];
   const active = typhoons || [];
   const withDistance = active.filter(function (t) { return t.distanceKm !== null; });
   withDistance.sort(function (a, b) { return a.distanceKm - b.distanceKm; });
   const nearest = withDistance[0];
+
+  // ページは長い。台風の現況の下に進路予想の説明が続くため、
+  // 発表があるときは先に知らせて飛べるようにする。
+  const upcoming = countUpcoming({ routes, eventsByRoute, today });
+  const jump = upcoming
+    ? '<p style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px 13px;' +
+      'margin:0 0 14px;font-size:0.98em;line-height:1.8">' +
+      '欠航・ダイヤ変更の発表が' + upcoming + '件あります　' +
+      '<a href="#unko" style="color:#b91c1c;font-weight:700">発表を見る ▼</a></p>'
+    : '';
 
   const head = active.length
     ? active.map(typhoonBlock).join('')
@@ -191,11 +306,12 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, not
     title: '台風情報と運航状況',
     body:
       nav + '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '</p>' +
+      jump +
       '<h2>発生中の台風・熱帯低気圧</h2>' +
       head +
-      trackSection(nearest, routePorts) +
       warningSection(weather) +
-      operationSection(routes, eventsByRoute, noticesByRoute, today) +
+      operationSection({ routes, eventsByRoute, noticesByRoute, pageIds, today }) +
+      trackSection(nearest, routePorts) +
       '<hr>' +
       '<p style="font-size:0.9em;color:#555">台風の情報の出典: 気象庁（' +
       '<a href="https://www.jma.go.jp/" target="_blank" rel="noopener">https://www.jma.go.jp/</a>）<br>' +
