@@ -4,12 +4,15 @@
 // 航路別の常設ページは3枚に分かれており、
 // 「今どの船で渡れるか」を知りたい人が3枚を開かずに済むようにする。
 //
+// このページとホームのガジェットは同じものを見せる。ガジェットは daily-now を
+// そのまま写しているため、ここに別の話（貨物船・掲載範囲）を混ぜると、
+// ホームとページで見えるものが食い違う。その2つは航路ページ側に置いている。
+//
 // 記事を増やさず1枚を更新し続ける形にしている（仕様Q22）。
 // URLが変わらないので、ブックマークして毎日開いてもらえる。
 
 import { STATUS_LABEL } from './lib/status.js';
 import { buildFleetSection } from './fleetsection.js';
-import { buildCargoSection } from './cargosection.js';
 import { fleetOperatorIds } from './fleet/voyages.js';
 import { buildDisclaimerBlock } from './disclaimer.js';
 
@@ -55,16 +58,15 @@ function routeGuide(routes, pageIds) {
 }
 
 export function buildDailyPage({
-  routes = [], pageIds = {}, events = [], fleet = null, cargo = [],
-  nav = '', alert = '', scope = '', now,
+  routes = [], pageIds = {}, events = [], fleet = null,
+  nav = '', alert = '', now,
 }) {
   return {
     title: '運航状況',
     body:
       nav +
       // daily-core はページ全体、daily-now はホームに出す分。
-      // ホームには「いま何が動いているか」だけを出し、
-      // 案内や注意書きはページ本体に置く。
+      // 中身は同じで、ページ側に付くのは航路ページへの案内と免責だけ。
       '<div id="daily-core">' +
       '<div id="daily-now">' + alert +
       '<p style="color:#555;font-size:0.9em;line-height:1.7">公式情報の確認日時: ' + jst(now) + '</p>' +
@@ -75,11 +77,9 @@ export function buildDailyPage({
         labelOf: (e) => label(e) + 'の発表があります',
       }) +
       '</div>' +
-      buildCargoSection(cargo, pageIds) +
       routeGuide(routes, pageIds) +
-      scope +
-      buildDisclaimerBlock() +
-      '</div>',
+      '</div>' +
+      buildDisclaimerBlock(),
   };
 }
 

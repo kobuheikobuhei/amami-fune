@@ -33,6 +33,7 @@ import { buildFleetView } from './fleet/voyages.js';
 import { buildNav, buildArticleNav } from './nav.js';
 import { buildTyphoonAlert } from './alert.js';
 import { buildScopeNotice } from './scope.js';
+import { buildCargoSection } from './cargosection.js';
 import { BloggerPublisher, readCredentials } from './publisher.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -285,6 +286,11 @@ async function main() {
 
     const page = buildStatusPage({
       route, operator,
+      // 掲載範囲の断りは全航路のページに置く。「運航状況」ページから外したため、
+      // ここに無いと「掲載していない航路がある」ことがどこにも出なくなる。
+      scope: scopeNotice,
+      // 貨物船の案内は、貨物の会社のページにだけ置く。
+      cargo: cfg.cargo.some((c) => c.route_id === routeId) ? buildCargoSection(cfg.cargo, pageIds) : '',
       events: routeEvents,
       health: routeHealth,
       officialUrl: operator?.site ?? '#',
@@ -351,9 +357,7 @@ async function main() {
       pageIds,
       events: Object.values(eventsByRouteAll).flat(),
       fleet: fleetView,
-      cargo: cfg.cargo,
       nav: buildNav(pageIds, phaseRoutes, '__daily'),
-      scope: scopeNotice,
       alert: typhoonAlert,
       now,
     });

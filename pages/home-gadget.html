@@ -13,7 +13,6 @@
 (function () {
   var PAGE_PATH = '/p/blog-page_578.html';
   var MARK = '<div id="daily-now">';
-  var HEADING = '\u73fe\u5728\u306e\u904b\u822a';
 
   var box = document.getElementById('amami-now');
   if (!box) return;
@@ -87,9 +86,10 @@
       var inner = sliceBlock(target.content ? target.content.$t : '');
       if (inner === null) { note('NG: marker missing', '#b91c1c'); return; }
 
+      /* 見出しは写してくる中身が持っている（fleetsection の「現在の運航」）。
+         ここでも付けると、ホームで同じ見出しが2つ並ぶ。 */
       box.innerHTML =
         '<div style="border:2px solid #1d4ed8;border-radius:8px;padding:14px 18px;margin:0 0 24px;background:#fff">' +
-        '<h2 style="margin:0 0 8px;font-size:1.15em">' + HEADING + '</h2>' +
         inner +
         '<p style="margin:10px 0 0"><a href="' + PAGE_PATH + '" style="color:#1d4ed8;font-weight:bold;text-decoration:none">' +
         '\u904b\u822a\u72b6\u6cc1\u306e\u30da\u30fc\u30b8\u3078</a></p>' +

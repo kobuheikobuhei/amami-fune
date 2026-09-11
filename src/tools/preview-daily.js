@@ -12,7 +12,6 @@ import { readEvents, latestEventsByKey, readFleet, readPageIds } from '../lib/st
 import { buildDailyPage } from '../dailypage.js';
 import { buildFleetView } from '../fleet/voyages.js';
 import { fetchFleet, shouldRefresh } from '../fleet/index.js';
-import { buildScopeNotice } from '../scope.js';
 
 const out = process.argv[2] ?? 'tmp/preview-daily.html';
 const cfg = loadConfig();
@@ -45,8 +44,6 @@ const page = buildDailyPage({
   pageIds: readPageIds(),
   events: Object.values(eventsByRoute).flat(),
   fleet: fleetView,
-  cargo: cfg.cargo,
-  scope: buildScopeNotice({ routes: cfg.routes, routeIds, operators: cfg.operators }),
   now,
 });
 

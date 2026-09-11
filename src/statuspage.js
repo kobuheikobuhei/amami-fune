@@ -78,7 +78,10 @@ function noticeSection(notices) {
     '<strong>継続中のお知らせ</strong><ul style="margin:6px 0 0">' + items + '</ul></div>';
 }
 
-export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], notices = [], nav = "", alert = "", now, failThreshold = 2 }) {
+// scope（掲載していない航路の断り）と cargo（貨物船の案内）はこちらに置く。
+// 「運航状況」ページはホームのガジェットが写しているため、あちらに混ぜると
+// ホームとページで見えるものが食い違う。
+export function buildStatusPage({ route, operator, events, health, officialUrl, referenceLinks = [], notices = [], nav = "", alert = "", scope = "", cargo = "", now, failThreshold = 2 }) {
   const today = jstDate(now);
 
   // 今日以降の便のみ。過去の欠航を現在の状態として見せない。
@@ -140,6 +143,7 @@ ${referenceLinks.map((l) => `<li><a href="${l.url}" target="_blank" rel="noopene
 ${fleetLinks}<h3>公式情報</h3>
 <p><a href="${officialUrl}" target="_blank" rel="noopener">${operator?.name ?? route.name} 公式サイト</a></p>
 
+${cargo}${scope}
 ${buildDisclaimerBlock()}`;
 
   return { title: `${route.name} 運航状況`, body };
