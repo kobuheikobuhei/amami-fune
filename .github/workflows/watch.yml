@@ -68,6 +68,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          # 既定では「起動がかかった時点」のコミットを取り出す。順番待ちの間に
+          # 前のジョブが20分ごとに state を保存しているため、それでは古い台帳で
+          # 走り出すことになり、すでに投稿した欠航をもう一度投稿しかねない。
+          # 枝の名前で指定すると、実際に走り出した時点の先頭を取る。
+          ref: ${{ github.ref_name }}
 
       - uses: actions/setup-node@v5
         with:
@@ -124,6 +130,13 @@ jobs:
               git commit -m "state: $(date -u +%Y-%m-%dT%H:%MZ) の収集結果"
               if ! (git pull --rebase --autostash && git push); then
                 echo "状態の保存に失敗しました。次の周でやり直します。"
+                # 取り込みが途中で止まったまま残ると、以降の周は何をしても
+                # 保存できない。片付けて、土台だけを相手の先頭に載せ替える。
+                # 集めた内容（作業ツリー）はそのまま残すので、次の周が
+                # まとめて保存し直す。台帳を捨てると投稿済みの欠航を
+                # もう一度投稿することになるため、向こうを丸ごと採らない。
+                git rebase --abort 2>/dev/null || true
+                git fetch origin "$GITHUB_REF_NAME" && git reset --soft FETCH_HEAD
               fi
             fi
 
