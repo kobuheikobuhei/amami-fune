@@ -157,6 +157,31 @@ sources:
       月はページ内の更新日から補うため、更新日の記載が消えると日付を特定できなくなる。
 
   # ── 早期検知（集約サイト）──────────────────────────
+  # 下の2つは提供元が同じ（九州のりものinfo.com運営協議会）。
+  # KKB版は携帯向けの軽い作りで、実際に取りに行くのはこちらだけ。
+  # のりものinfo本体は、KKB版が読めなくなったときの差し替え先として残す。
+  - id: kkb-norimono-ship
+    operator_id: null
+    route_ids: [marue-main, marix-main, amamikaiun-kikai, setouchi-kakeroma, setouchi-setonami]
+    type: html
+    url: https://www.kkb.co.jp/i/norimonoinfo/index.php?category_id=3
+    role: trigger
+    confidence: "-"
+    verified: 2026-09-12
+    robots: allow            # robots.txt は 404（制限なし）
+    notes: |
+      KKB（鹿児島放送）の交通情報のうち「旅客船・フェリー」。実装済み（src/watchers/kkb.js）。
+      中身は九州のりものinfo.com運営協議会の提供で、ページ自身が参考情報である旨を断っている。
+      運航会社自身の発表ではないため、記事の根拠にはしない。
+      全社ぶんが1ページ10KB程度に収まり、1リクエストで足りる。
+      文字コードは Shift_JIS。Content-Type の charset を見て読み替えている。
+      最も大きいのは瀬戸内町（かけろま・せとなみ）の状況が文で載ること。
+      公式サイトには運航状況が載らず、Xが読めなければ他に自動取得の経路がない。
+      十島村（鹿児島〜十島〜名瀬）も載るが、このブログの掲載対象外のため記録のみ。
+      見出しは体裁（font-size:13pt の会社名、color:blue の航路名）で書かれており、
+      体裁が変われば読めなくなる。そのときは0件を返し、古い内容は出さない。
+      電話番号は取得の時点で落とす。
+
   - id: norimono-info-kagoshima
     operator_id: null
     route_ids: [marue-main, marix-main, amamikaiun-kikai]

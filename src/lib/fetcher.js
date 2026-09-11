@@ -17,6 +17,24 @@ export class FetchError extends Error {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// 文字コードは相手が決める。Response.text() は中身に関わらずUTF-8として読むため、
+// Shift_JIS のページは全文が壊れる。KKB（九州のりものinfo）の携帯向けページが
+// これにあたる。Content-Type の charset を見て読み替え、無ければ meta から拾う。
+function decodeBody(bytes, contentType) {
+  const fromHeader = /charset\s*=\s*["']?([\w-]+)/i.exec(contentType ?? '')?.[1];
+  // meta の宣言は先頭にある。壊れても構わない読み方で覗くだけなので latin1 で足りる。
+  const head = new TextDecoder('latin1').decode(bytes.subarray(0, 2048));
+  const fromMeta = /charset\s*=\s*["']?([\w-]+)/i.exec(head)?.[1];
+  const label = (fromHeader ?? fromMeta ?? 'utf-8').toLowerCase();
+
+  try {
+    return new TextDecoder(label).decode(bytes);
+  } catch {
+    // 知らない名前を送ってくる相手もいる。読めないより化けたまま進むほうがよい。
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+}
+
 /**
  * URLを取得して本文テキストを返す。
  * 失敗しても例外を投げず、{ ok:false } を返す設計にはしない。
@@ -49,7 +67,8 @@ export async function fetchText(url, { userAgent, timeoutMs = DEFAULT_TIMEOUT_MS
         continue;
       }
 
-      const body = await res.text();
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const body = decodeBody(bytes, res.headers.get('content-type'));
       return { body, status: res.status, fetchedAt: new Date().toISOString() };
     } catch (err) {
       lastError = new FetchError(err.name === 'AbortError' ? 'タイムアウト' : err.message, {

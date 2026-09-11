@@ -6,6 +6,7 @@
 
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { field, chip, card, portChain, COLOR } from './style.js';
+import { buildDisclaimerLine } from './disclaimer.js';
 
 const OPERATOR_LABEL = {
   marue: 'マルエーフェリー',
@@ -61,8 +62,7 @@ const PORT_ROMAJI = {
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 const DIRECTION_ROMAJI = { up: 'n', down: 'k' };
 
-const DISCLAIMER =
-  '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
+
 
 function mmdd(dateStr) {
   const [, m, d] = dateStr.split('-');
@@ -265,8 +265,7 @@ export function buildBody(event, { route, correction = null, nav = "" }) {
     'style="color:' + COLOR.link + ';font-weight:600">' + event.source_title +
     '（' + op + ' 公式）</a></p>' +
     revisionHistory(event) +
-    '<hr>' +
-    '<p style="font-size:0.9em;color:#555;line-height:1.7">' + DISCLAIMER + '</p>';
+    buildDisclaimerLine();
 }
 
 export function buildArticle(event, { route, correction = null, nav = "" }) {

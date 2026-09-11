@@ -12,11 +12,10 @@ import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { serviceRow } from './style.js';
 import { jstDate } from './lib/text.js';
 import { NAZE } from './watchers/typhoon.js';
+import { buildDisclaimerBlock } from './disclaimer.js';
 
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 
-const DISCLAIMER =
-  '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
 
 function jst(iso) {
   return new Date(iso).toLocaleString('ja-JP', {
@@ -314,7 +313,7 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, not
       trackSection(nearest, routePorts) +
       '<hr>' +
       '<p style="font-size:0.9em;color:#555">台風の情報の出典: 気象庁（' +
-      '<a href="https://www.jma.go.jp/" target="_blank" rel="noopener">https://www.jma.go.jp/</a>）<br>' +
-      DISCLAIMER + '</p>',
+      '<a href="https://www.jma.go.jp/" target="_blank" rel="noopener">https://www.jma.go.jp/</a>）</p>' +
+      buildDisclaimerBlock(),
   };
 }

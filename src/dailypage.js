@@ -11,9 +11,9 @@ import { STATUS_LABEL } from './lib/status.js';
 import { buildFleetSection } from './fleetsection.js';
 import { buildCargoSection } from './cargosection.js';
 import { fleetOperatorIds } from './fleet/voyages.js';
+import { buildDisclaimerBlock } from './disclaimer.js';
 
-const DISCLAIMER =
-  '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
+
 
 // 台帳には古い表記が残るため、表示する語に寄せ直す。
 const DETAIL_DISPLAY = {
@@ -78,8 +78,7 @@ export function buildDailyPage({
       buildCargoSection(cargo, pageIds) +
       routeGuide(routes, pageIds) +
       scope +
-      '<hr>' +
-      '<p style="font-size:0.9em;color:#555">' + DISCLAIMER + '</p>' +
+      buildDisclaimerBlock() +
       '</div>',
   };
 }

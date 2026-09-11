@@ -12,6 +12,7 @@ loadEnvLocal();
 import { watchAline } from './watchers/aline.js';
 import { watchMarix } from './watchers/marix.js';
 import { watchKyodogumi } from './watchers/kyodogumi.js';
+import { watchKkb, changedBlocks } from './watchers/kkb.js';
 import { watchWeather } from './watchers/weather.js';
 import { decideMode, shouldRun } from './scheduler.js';
 import {
@@ -45,6 +46,11 @@ const WATCHERS = {
   'aline-amami-rss': watchAline,
   'marix-service-rss': watchMarix,
   'kyodogumi-html': watchKyodogumi,
+};
+
+// 早期検知だけに使う情報源。記事の根拠にはしないため、収集の本線とは分けて持つ。
+const TRIGGERS = {
+  'kkb-norimono-ship': watchKkb,
 };
 
 const log = (...a) => console.log(...a);
@@ -142,6 +148,47 @@ async function main() {
       const n = health[source.id].consecutive_failures;
       log('  FAIL ' + source.id + '  ' + err.message + '（連続' + n + '回）');
       if (n >= FAIL_THRESHOLD) notify.push('- 取得失敗: ' + source.id + ' — ' + err.message + '（連続' + n + '回）');
+    }
+  }
+
+  // ── 早期検知 ──────────────────────────────────
+  // 集約サイトの転載を1リクエストだけ見る。掲載の根拠にはしない（confidence: "-"）。
+  // 公式の発表は同じ周ですでに取りに行っているので、ここで分かることの多くは重複する。
+  // 値打ちがあるのは瀬戸内町で、公式サイトに運航状況が載らないため、
+  // 自動で変化を掴めるのはここだけになる。掲載はせず、メールで知らせる。
+  for (const source of cfg.sources.filter((s) => s.role === 'trigger' && TRIGGERS[s.id])) {
+    try {
+      const r = await TRIGGERS[source.id](source, { userAgent: cfg.userAgent });
+      const changes = changedBlocks(readSnapshot(source.id), r.blocks);
+      recordSuccess(health, source.id, r.fetchedAt);
+      log('  ok   ' + source.id + '  欄' + r.blocks.length + '件'
+        + (changes.length ? '（変化' + changes.length + '件）' : ''));
+
+      for (const c of changes) {
+        log('    変化 [' + c.coverage + '] ' + c.key);
+        if (c.coverage !== 'uncovered') continue;
+        notify.push(
+          '- 公式を自動で取得できない航路に動きがありました: ' + c.key + '\n'
+          + '  ' + c.text.split('\n').filter(Boolean)[0].slice(0, 140) + '\n'
+          + '  ' + source.url + '\n'
+          + '  ※転載のため掲載の根拠にはできません。町の公式Xなどで裏を取ってください。'
+        );
+      }
+
+      // 0件は「取れなかった」と同じ。空で上書きすると前回ぶんが消え、
+      // 次に読めた回で全欄が変化したことになって通知が飛ぶ。
+      if (r.blocks.length === 0) {
+        log('    欄を1つも読めませんでした。ページの体裁が変わった可能性があります。');
+      } else if (!DRY_RUN) {
+        writeSnapshot(source.id, {
+          fetched_at: r.fetchedAt,
+          items: r.blocks.map((b) => ({ guid: b.key, hash: b.hash })),
+        });
+      }
+    } catch (err) {
+      // 掲載には効かない情報源なので、落ちても通知はしない。健全性にだけ残す。
+      recordFailure(health, source.id, err.message, now);
+      log('  FAIL ' + source.id + '  ' + err.message);
     }
   }
 

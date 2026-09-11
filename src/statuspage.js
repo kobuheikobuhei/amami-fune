@@ -9,11 +9,10 @@
 import { STATUS_LABEL, STATUS_COLOR } from './lib/status.js';
 import { serviceRow } from './style.js';
 import { jstDate } from './lib/text.js';
+import { buildDisclaimerBlock } from './disclaimer.js';
 
 const DIRECTION_LABEL = { up: '上り便', down: '下り便' };
 
-const DISCLAIMER =
-  '最終的な運航可否は必ず各社公式サイトでご確認ください。当サイトは公式発表をもとに自動で情報を掲載しています。';
 
 function jst(iso) {
   return new Date(iso).toLocaleString('ja-JP', {
@@ -141,8 +140,7 @@ ${referenceLinks.map((l) => `<li><a href="${l.url}" target="_blank" rel="noopene
 ${fleetLinks}<h3>公式情報</h3>
 <p><a href="${officialUrl}" target="_blank" rel="noopener">${operator?.name ?? route.name} 公式サイト</a></p>
 
-<hr>
-<p style="font-size:0.9em;color:#555">${DISCLAIMER}</p>`;
+${buildDisclaimerBlock()}`;
 
   return { title: `${route.name} 運航状況`, body };
 }
