@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-09-11T09:20:00.715Z",
-  "from": "2026-09-10",
-  "to": "2026-09-14",
+  "checked_at": "2026-09-11T21:40:00.763Z",
+  "from": "2026-09-11",
+  "to": "2026-09-15",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -10,13 +10,6 @@
   "departures": {
     "kagoshima_okinawa_down": [
       {
-        "date": "2026-09-10",
-        "ship": "フェリーあけぼの",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
-      {
         "date": "2026-09-11",
         "ship": "クイーンコーラルクロス",
         "depart": "18:00",
@@ -45,19 +38,18 @@
         "depart": "18:00",
         "operator_id": "marix",
         "name": "マリックスライン",
+        "direction": "down"
+      },
+      {
+        "date": "2026-09-15",
+        "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
         "direction": "down"
       }
     ],
     "kagoshima_okinawa_up": [
       {
-        "date": "2026-09-10",
-        "ship": "クイーンコーラルクロス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      },
-      {
         "date": "2026-09-11",
         "ship": "クイーンコーラルプラス",
         "depart": "07:00",
@@ -86,6 +78,13 @@
         "depart": "07:00",
         "operator_id": "marix",
         "name": "マリックスライン",
+        "direction": "up"
+      },
+      {
+        "date": "2026-09-15",
+        "ship": "フェリーあけぼの",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
         "direction": "up"
       }
     ],
@@ -107,14 +106,14 @@
     ],
     "amamikaiun_up": [
       {
-        "date": "2026-09-10",
+        "date": "2026-09-12",
         "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "up"
       },
       {
-        "date": "2026-09-12",
+        "date": "2026-09-15",
         "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
