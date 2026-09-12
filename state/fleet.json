@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-09-12T09:57:19.623Z",
-  "from": "2026-09-11",
-  "to": "2026-09-15",
+  "checked_at": "2026-09-12T22:00:00.327Z",
+  "from": "2026-09-12",
+  "to": "2026-09-16",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -9,14 +9,6 @@
   },
   "departures": {
     "kagoshima_okinawa_down": [
-      {
-        "date": "2026-09-11",
-        "ship": "クイーンコーラルクロス",
-        "depart": "18:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "down"
-      },
       {
         "date": "2026-09-12",
         "ship": "クイーンコーラルプラス",
@@ -46,17 +38,17 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "down"
+      },
+      {
+        "date": "2026-09-16",
+        "ship": "クイーンコーラルプラス",
+        "depart": "18:00",
+        "operator_id": "marix",
+        "name": "マリックスライン",
+        "direction": "down"
       }
     ],
     "kagoshima_okinawa_up": [
-      {
-        "date": "2026-09-11",
-        "ship": "クイーンコーラルプラス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      },
       {
         "date": "2026-09-12",
         "ship": "フェリーあけぼの",
@@ -86,18 +78,26 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "up"
+      },
+      {
+        "date": "2026-09-16",
+        "ship": "クイーンコーラルクロス",
+        "depart": "07:00",
+        "operator_id": "marix",
+        "name": "マリックスライン",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
       {
-        "date": "2026-09-11",
+        "date": "2026-09-14",
         "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "down"
       },
       {
-        "date": "2026-09-14",
+        "date": "2026-09-16",
         "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
