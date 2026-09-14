@@ -59,8 +59,13 @@ function typhoonBlock(t) {
     '</div>';
 }
 
-/** 進路予想図へのリンクと、強度の定義の違いの説明 */
-function trackSection(nearest, routePorts) {
+/**
+ * 風の状況（Windy）。
+ * 台風の現況の数字だけでは、奄美との位置関係や風の広がりがつかみにくい。
+ * 地図で見るのが一番早いので、現況のすぐ下に置く。以前はページの最下部、
+ * 進路図の見方の長い説明の後ろにあり、そこまで読み進めないと見えなかった。
+ */
+function windySection(nearest) {
   const center = nearest ? nearest.position : null;
   const lat = center && center.lat ? center.lat : NAZE.lat;
   const lon = center && center.lon ? center.lon : NAZE.lon;
@@ -69,6 +74,16 @@ function trackSection(nearest, routePorts) {
     '&zoom=5&level=surface&overlay=wind&menu=&message=&marker=&calendar=now' +
     '&pressure=&type=map&location=coordinates&detail=&metricWind=m%2Fs&metricTemp=%C2%B0C&radarRange=-1';
 
+  return '<h3>風の状況（Windy）</h3>' +
+    '<div style="position:relative;padding-bottom:75%;height:0;overflow:hidden;max-width:100%;margin-bottom:8px">' +
+    '<iframe src="' + windy + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" ' +
+    'frameborder="0" loading="lazy" title="Windy 風の状況"></iframe>' +
+    '</div>' +
+    '<p style="font-size:0.85em;color:#666">提供: <a href="https://www.windy.com" target="_blank" rel="noopener">Windy.com</a></p>';
+}
+
+/** 進路予想図へのリンクと、強度の定義の違いの説明 */
+function trackSection() {
   return '<h2>進路予想</h2>' +
     '<ul>' +
     '<li><a href="https://www.jma.go.jp/bosai/map.html#contents=typhoon" target="_blank" rel="noopener">気象庁　台風情報</a>（日本の公式発表）</li>' +
@@ -96,13 +111,7 @@ function trackSection(nearest, routePorts) {
     '</ul>' +
     '<p>短い時間の平均ほど瞬間的な強い風を拾うため、米海軍の数値の方が大きく出ます。' +
     '台風の階級の呼び方も両者で異なります。' +
-    '日本の船会社は気象庁の情報をもとに運航を判断しています。</p>' +
-    '<h3>風の状況（Windy）</h3>' +
-    '<div style="position:relative;padding-bottom:75%;height:0;overflow:hidden;max-width:100%;margin-bottom:8px">' +
-    '<iframe src="' + windy + '" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" ' +
-    'frameborder="0" loading="lazy" title="Windy 風の状況"></iframe>' +
-    '</div>' +
-    '<p style="font-size:0.85em;color:#666">提供: <a href="https://www.windy.com" target="_blank" rel="noopener">Windy.com</a></p>';
+    '日本の船会社は気象庁の情報をもとに運航を判断しています。</p>';
 }
 
 /** 奄美地方の警報 */
@@ -254,7 +263,6 @@ function operationSection({ routes, eventsByRoute, noticesByRoute, pageIds, toda
 
 export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, noticesByRoute = {}, pageIds = {}, nav = "", now }) {
   const today = jstDate(now);
-  const routePorts = routes && routes.length ? (routes[0].ports || []) : [];
   const active = typhoons || [];
   const withDistance = active.filter(function (t) { return t.distanceKm !== null; });
   withDistance.sort(function (a, b) { return a.distanceKm - b.distanceKm; });
@@ -281,9 +289,10 @@ export function buildTyphoonPage({ typhoons, weather, routes, eventsByRoute, not
       jump +
       '<h2>発生中の台風・熱帯低気圧</h2>' +
       head +
+      windySection(nearest) +
       warningSection(weather) +
       operationSection({ routes, eventsByRoute, noticesByRoute, pageIds, today }) +
-      trackSection(nearest, routePorts) +
+      trackSection() +
       '<hr>' +
       '<p style="font-size:0.9em;color:#555">台風の情報の出典: 気象庁（' +
       '<a href="https://www.jma.go.jp/" target="_blank" rel="noopener">https://www.jma.go.jp/</a>）</p>' +
