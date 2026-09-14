@@ -79,36 +79,9 @@ export async function watchTyphoon({ userAgent }) {
     const deg = now.position?.deg;
     const center = Array.isArray(deg) ? { lat: deg[0], lon: deg[1] } : null;
 
-    // 予報は台風に発達してから出る。無い場合もある。
-    let forecasts = [];
-    let track = [];
-    try {
-      const fc = await fetchJson(`${BASE}/${id}/forecast.json`, userAgent);
-      // 実況の part にこれまでの経路が入っている。進路図を描くのに使う。
-      const analysis = (fc ?? []).find((p) => (typeof p.part === 'string' ? p.part : p.part?.jp) === '実況');
-      const tk = analysis?.track ?? {};
-      track = [...(tk.preTyphoon ?? []), ...(tk.typhoon ?? [])];
-      forecasts = (fc ?? [])
-        .filter((p) => p.advancedHours > 0)
-        .map((p) => {
-          const c = p.forecastCircle?.basePoint ?? p.center;
-          const pos = Array.isArray(c) ? { lat: c[0], lon: c[1] } : null;
-          return {
-            hours: p.advancedHours,
-            validtime: p.validtime?.JST ?? null,
-            category: value(p.category?.jp),
-            intensity: value(p.intensity),
-            scale: value(p.scale),
-            pressure: value(p.pressure),
-            position: pos,
-            distanceKm: pos ? Math.round(distanceKm(NAZE, pos)) : null,
-            bearing: pos ? bearingLabel(NAZE, pos) : null,
-          };
-        });
-    } catch {
-      forecasts = [];
-      track = [];
-    }
+    // 予報（forecast.json）は取りに行かない。以前は「名瀬港からの距離」の表を
+    // 出していたが、予報円の中心を並べても通る場所と読まれやすく、ページから外した。
+    // 使わないものを台風1つにつき毎周取るのは、相手先の負担になるだけなので。
 
     typhoons.push({
       id,
@@ -119,8 +92,9 @@ export async function watchTyphoon({ userAgent }) {
       scale: value(now.scale),
       intensity: value(now.intensity),
       pressure: value(now.pressure),
-      maxWind: value(now.maximumWind?.sustained?.range?.[0] ?? now.maximumWind?.sustained ?? now.maximumWind),
-      gustWind: value(now.maximumWind?.gust?.range?.[0] ?? now.gustWind),
+      // 気象庁の形式は maximumWind: { sustained: { "m/s": "15" }, gust: { "m/s": "23" } }
+      maxWind: value(now.maximumWind?.sustained?.['m/s'] ?? now.maximumWind?.sustained?.range?.[0]),
+      gustWind: value(now.maximumWind?.gust?.['m/s'] ?? now.maximumWind?.gust?.range?.[0]),
       course: value(now.course),
       speed: value(now.speed?.note?.jp ?? (now.speed?.km ? `${now.speed.km}km/h` : null)),
       location: value(now.location),
@@ -129,8 +103,6 @@ export async function watchTyphoon({ userAgent }) {
       bearing: center ? bearingLabel(NAZE, center) : null,
       issuedAt: title.issue?.JST ?? null,
       validAt: now.validtime?.JST ?? null,
-      forecasts,
-      track,
     });
   }
 

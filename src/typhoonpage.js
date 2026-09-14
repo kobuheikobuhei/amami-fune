@@ -29,32 +29,6 @@ function row(label, value) {
     label + '</th><td style="padding:5px 0"><strong>' + value + '</strong></td></tr>';
 }
 
-/** 予報。台風に発達している間だけ出る */
-function forecastTable(t) {
-  if (!t.forecasts || !t.forecasts.length) return '';
-  const rows = t.forecasts.map(function (f) {
-    const dist = f.distanceKm !== null ? f.bearing + ' 約' + f.distanceKm + 'km' : '—';
-    const cat = [f.category, f.pressure ? f.pressure + 'hPa' : null].filter(Boolean).join(' ');
-    return '<tr>' +
-      '<td style="padding:4px 12px 4px 0;white-space:nowrap">' + f.hours + '時間後</td>' +
-      '<td style="padding:4px 12px 4px 0;white-space:nowrap">' + (f.validtime ? jst(f.validtime) : '—') + '</td>' +
-      '<td style="padding:4px 12px 4px 0;white-space:nowrap">' + dist + '</td>' +
-      '<td style="padding:4px 0;white-space:nowrap">' + cat + '</td>' +
-      '</tr>';
-  }).join('');
-
-  return '<h4 style="margin:14px 0 6px">予報（' + NAZE.name + 'からの距離）</h4>' +
-    '<table style="border-collapse:collapse;font-size:0.95em">' +
-    '<tr style="border-bottom:1px solid #ddd;color:#555">' +
-    '<th style="text-align:left;padding:4px 12px 4px 0">時点</th>' +
-    '<th style="text-align:left;padding:4px 12px 4px 0">日時</th>' +
-    '<th style="text-align:left;padding:4px 12px 4px 0">' + NAZE.name + 'から</th>' +
-    '<th style="text-align:left;padding:4px 0">階級</th></tr>' +
-    rows + '</table>' +
-    '<p style="font-size:0.85em;color:#666;margin:6px 0 0">' +
-    '予報円の中心までの距離です。台風の中心が必ずこの位置を通るという意味ではありません。</p>';
-}
-
 /** 台風1つ分の現況 */
 function typhoonBlock(t) {
   const title = [
@@ -82,7 +56,6 @@ function typhoonBlock(t) {
     row('進行方向', [t.course, t.speed].filter(Boolean).join(' ')) +
     row('観測時刻', t.validAt ? jst(t.validAt) : null) +
     '</table>' +
-    forecastTable(t) +
     '</div>';
 }
 
