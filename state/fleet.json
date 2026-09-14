@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-09-13T22:20:00.200Z",
+  "checked_at": "2026-09-14T10:20:01.023Z",
   "from": "2026-09-13",
   "to": "2026-09-17",
   "sources": {
@@ -17,26 +17,10 @@
         "direction": "down"
       },
       {
-        "date": "2026-09-14",
-        "ship": "クイーンコーラルクロス",
-        "depart": "18:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "down"
-      },
-      {
         "date": "2026-09-15",
         "ship": "フェリー波之上",
         "operator_id": "marue",
         "name": "マルエーフェリー",
-        "direction": "down"
-      },
-      {
-        "date": "2026-09-16",
-        "ship": "クイーンコーラルプラス",
-        "depart": "18:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
         "direction": "down"
       },
       {
@@ -49,34 +33,10 @@
     ],
     "kagoshima_okinawa_up": [
       {
-        "date": "2026-09-13",
-        "ship": "クイーンコーラルクロス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      },
-      {
-        "date": "2026-09-14",
-        "ship": "クイーンコーラルプラス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      },
-      {
         "date": "2026-09-15",
         "ship": "フェリーあけぼの",
         "operator_id": "marue",
         "name": "マルエーフェリー",
-        "direction": "up"
-      },
-      {
-        "date": "2026-09-16",
-        "ship": "クイーンコーラルクロス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
         "direction": "up"
       },
       {
@@ -121,5 +81,11 @@
     ]
   },
   "problems": [],
-  "notes": []
+  "notes": [
+    "2026-09-14 は両社とも鹿児島発の予定がありません",
+    "2026-09-16 は両社とも鹿児島発の予定がありません",
+    "2026-09-13 は両社とも那覇発の予定がありません",
+    "2026-09-14 は両社とも那覇発の予定がありません",
+    "2026-09-16 は両社とも那覇発の予定がありません"
+  ]
 }
