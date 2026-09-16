@@ -1,20 +1,16 @@
 {
-  "fetched_at": "2026-09-15T23:40:03.753Z",
+  "fetched_at": "2026-09-16T00:59:44.721Z",
   "items": [
-    {
-      "guid": "https://marixline.com/service/downstream20260914/",
-      "hash": "normal通常運航"
-    },
     {
       "guid": "https://marixline.com/service/downstream20260916/",
       "hash": "normal通常運航"
     },
     {
-      "guid": "https://marixline.com/service/upstream20260914/",
+      "guid": "https://marixline.com/service/upstream20260916/",
       "hash": "normal通常運航"
     },
     {
-      "guid": "https://marixline.com/service/upstream20260916/",
+      "guid": "https://marixline.com/service/downstream20260914/",
       "hash": "normal通常運航"
     },
     {
@@ -48,6 +44,10 @@
     {
       "guid": "https://marixline.com/service/downstream20260902/",
       "hash": "cancelled欠航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20260914/",
+      "hash": "normal通常運航"
     },
     {
       "guid": "https://marixline.com/service/upstream20260913/",
