@@ -1,93 +1,45 @@
 {
-  "fetched_at": "2026-09-18T20:20:04.469Z",
+  "fetched_at": "2026-09-18T20:41:07.470Z",
   "items": [
     {
-      "guid": "https://marixline.com/service/downstream20260918/",
-      "hash": "conditional条件付運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5371",
+      "hash": "23e4db52t4o"
     },
     {
-      "guid": "https://marixline.com/service/upstream20260918/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5737",
+      "hash": "1p5kzwdnoue"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260916/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5735",
+      "hash": "1d4892lgisa"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260914/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5369",
+      "hash": "11vgvbwqrbi"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260912/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5733",
+      "hash": "1q1hvvoxvie"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260911/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5367",
+      "hash": "1c8sgqugjdn"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260909/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5731",
+      "hash": "2d0bhyzez7n"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260908/",
-      "hash": "conditional条件付運航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5365",
+      "hash": "181iqt95oi"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260906/",
-      "hash": "extra航行経路変更"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5363",
+      "hash": "1ardw3dw93m"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260905/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20260903/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20260902/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260916/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260914/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260913/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260911/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260910/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260908/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260907/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260905/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260904/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20260902/",
-      "hash": "cancelled欠航"
+      "guid": "https://marixline.com/?post_type=service&#038;p=5729",
+      "hash": "16sd759adi1"
     }
   ]
 }
