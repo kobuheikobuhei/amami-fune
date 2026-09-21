@@ -67,5 +67,18 @@
     "ship": "クイーンコーラルプラス",
     "port_notes": [],
     "date": "2026-09-20"
+  },
+  "https://marixline.com/service/upstream20260922/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [
+      {
+        "kind": "conditional",
+        "ports": [
+          "和泊港",
+          "亀徳港"
+        ]
+      }
+    ],
+    "date": "2026-09-22"
   }
 }
