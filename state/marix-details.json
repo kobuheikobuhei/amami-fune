@@ -85,5 +85,15 @@
     "ship": "クイーンコーラルクロス",
     "port_notes": [],
     "date": "2026-09-22"
+  },
+  "https://marixline.com/service/downstream20260924/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-09-24"
+  },
+  "https://marixline.com/service/upstream20260924/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [],
+    "date": "2026-09-24"
   }
 }
