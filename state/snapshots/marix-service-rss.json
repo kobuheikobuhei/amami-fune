@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-09-25T01:10:16.030Z",
+  "fetched_at": "2026-09-25T07:01:48.115Z",
   "items": [
     {
       "guid": "https://marixline.com/service/downstream20260924/",
@@ -12,6 +12,10 @@
     {
       "guid": "https://marixline.com/service/upstream20260924/",
       "hash": "normal通常運航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20260926/",
+      "hash": "conditional条件付運航"
     },
     {
       "guid": "https://marixline.com/service/upstream20260928/",
