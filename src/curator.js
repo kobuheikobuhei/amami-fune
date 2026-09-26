@@ -141,8 +141,15 @@ export function diffAgainstLedger(candidates, ledger, { seedOnlySources = new Se
     const statusChanged = prev.status !== c.status;
     const sourceChanged = prev.source_url !== c.source_url;
     const newer = new Date(c.published_at) > new Date(prev.published_at ?? 0);
+    const notNewer = new Date(c.published_at) >= new Date(prev.published_at ?? 0);
+    // 寄港しない港は、状態が同じままでも後から分かることがある（発表の追記や、
+    // こちらの読み取りの修正）。記事に古い港の情報が残らないよう、これも続報として扱う。
+    const notesChanged =
+      JSON.stringify(prev.port_notes ?? []) !== JSON.stringify(c.port_notes ?? []);
 
-    if ((statusChanged || sourceChanged) && newer) {
+    if (((statusChanged || sourceChanged) && newer) || (notesChanged && notNewer)) {
+      // 更新履歴は状態の移り変わりを示すもの。港の情報だけが変わったときは足さない。
+      const revise = statusChanged || sourceChanged;
       actions.push({
         type: seeding ? 'seed' : 'update',
         candidate: c,
@@ -151,14 +158,18 @@ export function diffAgainstLedger(candidates, ledger, { seedOnlySources = new Se
           status: c.status,
           detail: c.detail,
           evidence: c.evidence,
+          port_notes: c.port_notes,
+          related: c.related,
           source_url: c.source_url,
           source_title: c.source_title,
           published_at: c.published_at,
           confirmed_at: now,
-          revisions: [
-            ...(prev.revisions ?? []),
-            { at: now, status: c.status, detail: c.detail, source_url: c.source_url },
-          ],
+          revisions: revise
+            ? [
+                ...(prev.revisions ?? []),
+                { at: now, status: c.status, detail: c.detail, source_url: c.source_url },
+              ]
+            : prev.revisions ?? [],
         },
       });
     } else {

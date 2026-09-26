@@ -222,7 +222,8 @@ export function extractPortNotes(text) {
 
     if (/条件付/.test(line)) {
       notes.push({ kind: "conditional", ports });
-    } else if (/寄港(いた)?し(ま(せん|せんので)|ない)/.test(line)) {
+    } else if (/寄港(いた|致)?し(ま(せん|せんので)|ない)|寄港(でき|出来)ません/.test(line)) {
+      // 「寄港致しません」と漢字で書かれることがある（9/26 フェリーあけぼの）。
       notes.push({ kind: "no_call", ports });
     } else if (/変更/.test(line)) {
       notes.push({ kind: "changed", ports });

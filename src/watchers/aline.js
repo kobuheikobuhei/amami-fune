@@ -47,6 +47,9 @@ function headingIn(line) {
   return matches.length ? matches[matches.length - 1][1] : null;
 }
 
+/** 寄港時刻の行。「那覇港 /22:00(出港)」「名瀬港 8:30(入港)/21:20(出港)」 */
+const TIMETABLE_LINE = /\d{1,2}[:：]\d{2}\s*[（(](入港|出港|着|発)[)）]/;
+
 /**
  * 本文を行単位で解析し、便ごとの状態を取り出す。
  * 日付を含まない行はイベントにしない（事実が特定できないため）。
@@ -55,16 +58,25 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
   const lines = bodyText.split('\n').map((l) => l.trim()).filter(Boolean);
   const entries = [];
   let headingStatus = null;
+  // 便の見出し行（「9月26日(土)上り便 フェリーあけぼの」）の後には、
+  // その便の寄港時刻が1港1行で続く（「9月28日(月)鹿児島新港 8:30(入港)」）。
+  // これは同じ便の途中経過で、別の便ではない。便として拾うと「9/28 鹿児島新港発」
+  // のような存在しない便ができてしまう。
+  let underVoyage = false;
 
   for (const line of lines) {
     const heading = headingIn(line);
     if (heading) {
       const hs = classify(heading);
       if (hs) headingStatus = hs;
+      underVoyage = false;
     }
 
     const units = extractDateUnits(line, baseDate);
     if (units.length === 0) continue;
+
+    if (underVoyage && TIMETABLE_LINE.test(line) && !/便/.test(line)) continue;
+    if (units.length === 1 && /[上下]り便|臨時便/.test(line)) underVoyage = true;
 
     const status = classify(line) ?? headingStatus ?? titleStatus;
     if (!status) continue;

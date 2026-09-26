@@ -17,12 +17,24 @@
 
 import { fetchText } from '../lib/fetcher.js';
 
-/** class に含まれる語から港の状態を判定する */
-function portStatus(cls) {
-  if (/cancel|kekko|closed/i.test(cls)) return 'no_call';
+/**
+ * 港の状態を判定する。港ごとに表示される文言を先に見て、class は補助にする。
+ *
+ * class の付け方は発表の種類で変わる。航行経路変更の便では、寄港しない港が
+ * class="single no_status"、寄港する港が "route alert" になっていた。
+ * class だけで判定していたため、寄港しない5港を平常と読み違えていた。
+ * 画面の文言（「寄港しません」など）は読者が見るものそのものなので、こちらを優先する。
+ */
+function portStatus(cls, text) {
+  if (/寄港しません|抜港/.test(text)) return 'no_call';
+  if (/条件付/.test(text)) return 'conditional';
+  if (/定刻通り|通常運航/.test(text)) return 'normal';
+  if (/cancel|kekko|closed|no_status/i.test(cls)) return 'no_call';
   if (/conditional/i.test(cls)) return 'conditional';
   if (/change/i.test(cls)) return 'changed';
-  return 'normal';
+  if (/\bnormal\b/i.test(cls)) return 'normal';
+  // 文言も class も知らない形。平常と決めつけず、分からないことを残す。
+  return 'unknown';
 }
 
 function clean(s) {
@@ -46,7 +58,10 @@ export async function fetchDetail(url, { userAgent }) {
     const island = clean((seg.match(/class="island">([\s\S]*?)<\/span>/) ?? [])[1]);
     const times = [...seg.matchAll(/class="time[^"]*">([\s\S]*?)<\/span>/g)]
       .map((x) => clean(x[1])).filter(Boolean);
-    ports.push({ port: name, island, status: portStatus(cls), times });
+    // 港の状態の文言は時刻より前にある。最後の港の後ろには
+    // 「条件付運航の注意事項」などページ全体の見出しが続くため、時刻で切る。
+    const label = clean(seg).split(/[入出]港\d/)[0];
+    ports.push({ port: name, island, status: portStatus(cls, label), times });
   }
 
   // 平常でない港だけを注記にする。

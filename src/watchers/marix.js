@@ -39,21 +39,30 @@ async function fromList({ userAgent, known, source, details = {}, today }) {
     // 個別ページは1枚1MBある。船名と条件付きの港だけを使うので、
     // 一度取ったら覚えておく。通常運航や過去の便は台帳に載らないため、
     // 覚えておかないと毎回取り直しになる（実測で1回10MB）。
+    //
+    // ただし同じURLのまま状態が変わる（通常運航→航行経路変更など）。
+    // 覚えたときの状態と一覧の状態が違えば、港ごとの状態も変わっているので取り直す。
+    // 以前は一度覚えたら取り直さず、9/26の下り便で寄港しない5港を載せ損ねた。
     let ship = null;
     let portNotes = [];
     const cached = details[it.url];
+    const fresh = cached && cached.label === it.label;
 
     if (cached) {
       ship = cached.ship ?? null;
       portNotes = cached.port_notes ?? [];
-    } else if (!today || it.service_date >= today) {
+    }
+    if (!fresh && (!today || it.service_date >= today)) {
       // 過去の便は取りに行かない。もう表示に使わない。
       try {
         const d = await fetchDetail(it.url, { userAgent });
         ship = d.ship;
         portNotes = d.port_notes;
-        details[it.url] = { ship: d.ship, port_notes: d.port_notes, date: it.service_date };
-      } catch { /* 取れなくても一覧の情報で続ける */ }
+        details[it.url] = { ship: d.ship, port_notes: d.port_notes, date: it.service_date, label: it.label };
+      } catch {
+        // 取れなければ一覧の情報で続ける。古い港の状態は今の発表と合わないおそれがあるため使わない。
+        if (cached) portNotes = [];
+      }
     }
     const entries = it.service_date
       ? [{
