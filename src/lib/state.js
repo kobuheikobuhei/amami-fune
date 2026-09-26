@@ -61,10 +61,17 @@ export function readEvents() {
     .filter(Boolean);
 }
 
-/** 同じ event_key の行が複数あれば、最後の行を最新とみなす */
+/**
+ * 同じ event_key の行が複数あれば、最後の行を最新とみなす。
+ *
+ * 最新の行が取り消し（withdrawn）なら、その便は無かったものとして外す。
+ * 読み取りの誤りで存在しない便を載せたときに、記事を消した後も
+ * 運航状況のページに残り続けないようにするため（src/tools/withdraw-events.js）。
+ */
 export function latestEventsByKey(events) {
   const map = new Map();
   for (const e of events) map.set(e.event_key, e);
+  for (const [k, e] of map) if (e.withdrawn) map.delete(k);
   return map;
 }
 
