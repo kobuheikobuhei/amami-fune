@@ -1,12 +1,12 @@
 {
-  "fetched_at": "2026-09-27T23:30:05.783Z",
+  "fetched_at": "2026-09-27T23:40:04.594Z",
   "items": [
     {
-      "guid": "https://marixline.com/service/downstream20260928/",
-      "hash": "normal通常運航"
+      "guid": "https://marixline.com/service/downstream20260926/",
+      "hash": "extra航行経路変更"
     },
     {
-      "guid": "https://marixline.com/service/downstream20260926/",
+      "guid": "https://marixline.com/service/downstream20260928/",
       "hash": "extra航行経路変更"
     },
     {

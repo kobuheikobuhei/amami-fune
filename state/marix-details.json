@@ -116,8 +116,23 @@
   },
   "https://marixline.com/service/downstream20260928/": {
     "ship": "クイーンコーラルプラス",
-    "port_notes": [],
+    "port_notes": [
+      {
+        "kind": "no_call",
+        "ports": [
+          "亀徳港",
+          "和泊港",
+          "与論港"
+        ]
+      },
+      {
+        "kind": "conditional",
+        "ports": [
+          "本部港"
+        ]
+      }
+    ],
     "date": "2026-09-28",
-    "label": "通常運航"
+    "label": "航行経路変更"
   }
 }
