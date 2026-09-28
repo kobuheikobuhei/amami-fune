@@ -29,11 +29,22 @@ function row(label, value) {
     label + '</th><td style="padding:5px 0"><strong>' + value + '</strong></td></tr>';
 }
 
+/**
+ * 「第◯号」。番号は西暦下2桁＋通し番号の4桁（2624 なら第24号）。
+ * 番号が付くのは台風になってからで、熱帯低気圧の段階では気象庁は数字ではなく
+ * 符号（a など）を返す。これを切り詰めると「第0号」になってしまうため、
+ * 4桁の数字のときだけ番号を出す。
+ */
+function typhoonNumber(number) {
+  if (!/^[0-9]{4}$/.test(String(number ?? ''))) return null;
+  return '第' + Number(String(number).slice(2)) + '号';
+}
+
 /** 台風1つ分の現況 */
 function typhoonBlock(t) {
   const title = [
     t.category,
-    t.number ? '第' + Number(String(t.number).slice(2)) + '号' : null,
+    typhoonNumber(t.number),
     t.name ? '（' + t.name + '）' : null,
   ].filter(Boolean).join(' ');
 
