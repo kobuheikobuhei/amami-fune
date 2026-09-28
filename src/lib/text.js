@@ -41,7 +41,14 @@ export function stripPhoneNumbers(text) {
 /** 問い合わせ先ブロック以降を落とす */
 export function cutContactBlock(text) {
   const lines = String(text).split('\n');
-  const idx = lines.findIndex((l) => /お問\s*い?\s*合わせ|お問合せ|問い合わせ先/.test(l));
+  // 連絡先の見出しの行（「<お問い合わせ先>」「お問い合わせ・ご予約」）だけを区切りにする。
+  // 「…予約センターへお問い合わせください。」のような文中の語で切ると、
+  // その後ろの欠航便・臨時便の一覧ごと捨ててしまう（9/27 フェリー波之上）。
+  const idx = lines.findIndex((l) => {
+    const s = l.trim();
+    if (!/お問\s*い?\s*合わせ|お問合せ|問い合わせ先/.test(s)) return false;
+    return s.length <= 20 && !/ください|下さい|ます|。/.test(s);
+  });
   return (idx >= 0 ? lines.slice(0, idx) : lines).join('\n').trim();
 }
 

@@ -49,6 +49,8 @@ function headingIn(line) {
 
 /** 寄港時刻の行。「那覇港 /22:00(出港)」「名瀬港 8:30(入港)/21:20(出港)」 */
 const TIMETABLE_LINE = /\d{1,2}[:：]\d{2}\s*[（(](入港|出港|着|発)[)）]/;
+/** 着く時刻を含む行。「喜界4:30着/5:00発」「名瀬港 8:30(入港)」 */
+const ARRIVAL_LINE = /\d{1,2}[:：]\d{2}\s*([（(](入港|着)[)）]|着)/;
 
 /**
  * 本文を行単位で解析し、便ごとの状態を取り出す。
@@ -63,6 +65,14 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
   // これは同じ便の途中経過で、別の便ではない。便として拾うと「9/28 鹿児島新港発」
   // のような存在しない便ができてしまう。
   let underVoyage = false;
+  let seenDated = false;
+  // 見出し（【臨時便(下り)】など）で区切った塊。寄港しない港の注記は、
+  // 同じ塊の便にだけ当てはまる。発表全体に当てると、下りの臨時便だけが
+  // 寄らない港を、同じ発表の上りの臨時便にまで「寄港しません」と書いてしまう。
+  let block = 0;
+  let blockDirection = null;
+  let blockHeading = '';
+  const blockNotes = new Map();
 
   for (const line of lines) {
     const heading = headingIn(line);
@@ -70,12 +80,24 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
       const hs = classify(heading);
       if (hs) headingStatus = hs;
       underVoyage = false;
+      block += 1;
+      blockDirection = extractDirection(heading);
+      blockHeading = heading;
     }
+
+    const notes = extractPortNotes(line);
+    if (notes.length) blockNotes.set(block, [...(blockNotes.get(block) ?? []), ...notes]);
 
     const units = extractDateUnits(line, baseDate);
     if (units.length === 0) continue;
 
     if (underVoyage && TIMETABLE_LINE.test(line) && !/便/.test(line)) continue;
+    // 奄美海運は見出しを置かずに「9/18(金) 鹿児島本港北埠頭17:30発」
+    // 「9/19(土) 喜界4:30着/5:00発」と並べる。着く時刻を含む行は、上に書かれた便の
+    // 途中の港か終着で、新しい便の出発ではない。発の時刻だけの行（欠航便の列挙など）は
+    // それぞれ別の便なので、ここでは外さない。
+    if (seenDated && ARRIVAL_LINE.test(line) && !/便/.test(line)) continue;
+    seenDated = true;
     if (units.length === 1 && /[上下]り便|臨時便/.test(line)) underVoyage = true;
 
     const status = classify(line) ?? headingStatus ?? titleStatus;
@@ -92,11 +114,14 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
         service_date: u.from,
         service_date_end: u.to ?? null,
         status,
-        direction: specificity === 1 ? null : extractDirection(line),
+        direction: specificity === 1 ? null : extractDirection(line) ?? blockDirection,
         origin: specificity === 1 ? null : extractOrigin(line),
-        detail: detailPhrase(line, status) ?? detailPhrase(heading ?? '', status) ?? null,
+        // 一覧の行には「臨時便」の語が無く、塊の見出し【臨時便(下り)】にだけある。
+        detail: detailPhrase(line, status) ?? detailPhrase(heading ?? '', status) ??
+          (specificity === 1 ? null : detailPhrase(blockHeading, status)) ?? null,
         specificity,
         line,
+        block,
       });
     }
   }
@@ -109,12 +134,27 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
     maxSpec.set(k, Math.max(maxSpec.get(k) ?? 0, e.specificity));
   }
 
+  // 要約文（日付が2つ以上ある行）は、どの日がどの状態か分からない。
+  // 「欠航に伴い、9月28日…9月30日…で臨時便を運航」は欠航の語を含むが、
+  // 2つの日付は臨時便の日。同じ日を一覧の行が明示していれば、状態が違っても一覧に従う。
+  const specificDates = new Set(
+    entries.filter((e) => e.specificity >= 2).map((e) => `${e.service_date}|${e.service_date_end ?? ''}`)
+  );
+
+  // 便の無い塊に書かれた注記（《寄港地について》の下など）は、どの便のことか
+  // 決められないため、これまでどおり発表の全ての便に当てる。
+  const entryBlocks = new Set(entries.map((e) => e.block));
+  const sharedNotes = [...blockNotes].filter(([b]) => !entryBlocks.has(b)).flatMap(([, n]) => n);
+
   const kept = new Map();
   for (const e of entries) {
     const k = `${e.service_date}|${e.service_date_end ?? ''}|${e.status}`;
     if (e.specificity < maxSpec.get(k)) continue;
+    if (e.specificity === 1 && specificDates.has(`${e.service_date}|${e.service_date_end ?? ''}`)) continue;
     const key = `${k}|${e.origin ?? ''}|${e.direction ?? ''}`;
-    if (!kept.has(key)) kept.set(key, e);
+    if (kept.has(key)) continue;
+    const { block: b, ...rest } = e;
+    kept.set(key, { ...rest, port_notes: [...(blockNotes.get(b) ?? []), ...sharedNotes] });
   }
   return [...kept.values()].sort((a, b) => a.service_date.localeCompare(b.service_date));
 }

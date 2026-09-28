@@ -70,7 +70,8 @@ export function toCandidates(observations, { now }) {
       const key = eventKey(entry, obs.route_id);
       const candidate = {
         related,
-        port_notes: obs.port_notes ?? [],
+        // 便ごとの注記があればそちらを使う（A"LINE は見出しの塊ごとに分けている）。
+        port_notes: entry.port_notes ?? obs.port_notes ?? [],
         event_key: key,
         route_id: obs.route_id,
         operator_id: obs.operator_id,
