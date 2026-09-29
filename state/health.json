@@ -2,31 +2,31 @@
   "aline-kagoshima-rss": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-29T04:10:02.588Z",
+    "last_success": "2026-09-29T04:20:02.009Z",
     "last_error": null
   },
   "aline-amami-rss": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-29T04:10:03.303Z",
+    "last_success": "2026-09-29T04:20:02.742Z",
     "last_error": null
   },
   "marix-service-rss": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-29T04:10:05.287Z",
+    "last_success": "2026-09-29T04:20:04.372Z",
     "last_error": null
   },
   "kyodogumi-html": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-29T04:10:05.986Z",
+    "last_success": "2026-09-29T04:20:04.973Z",
     "last_error": null
   },
   "kkb-norimono-ship": {
     "ok": true,
     "consecutive_failures": 0,
-    "last_success": "2026-09-29T04:10:07.119Z",
+    "last_success": "2026-09-29T04:20:05.966Z",
     "last_error": null
   }
 }
