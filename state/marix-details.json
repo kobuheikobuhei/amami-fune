@@ -138,5 +138,11 @@
     ],
     "date": "2026-09-30",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/downstream20260930/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [],
+    "date": "2026-09-30",
+    "label": "通常運航"
   }
 }
