@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-05T17:45:11.944Z",
+  "at": "2026-10-05T23:37:31.188Z",
   "credential_lengths": {
     "BLOGGER_BLOG_ID": 19,
     "GOOGLE_CLIENT_ID": 72,
@@ -14,13 +14,13 @@
   "result": {
     "mode": "normal",
     "sources": 4,
-    "observations": 17,
-    "candidates": 14,
+    "observations": 16,
+    "candidates": 12,
     "created": 0,
     "updated": 0,
     "seeded": 0,
     "status_pages": 6,
-    "fleet_departures": 8,
+    "fleet_departures": 11,
     "notifications": 0
   }
 }
