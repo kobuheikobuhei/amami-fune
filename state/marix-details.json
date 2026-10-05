@@ -146,5 +146,25 @@
     ],
     "date": "2026-10-04",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/upstream20261006/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [
+      {
+        "kind": "no_call",
+        "ports": [
+          "和泊港"
+        ]
+      },
+      {
+        "kind": "conditional",
+        "ports": [
+          "与論港",
+          "亀徳港"
+        ]
+      }
+    ],
+    "date": "2026-10-06",
+    "label": "航行経路変更"
   }
 }
