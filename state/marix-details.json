@@ -166,5 +166,11 @@
     ],
     "date": "2026-10-06",
     "label": "航行経路変更"
+  },
+  "https://marixline.com/service/downstream20261006/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-10-06",
+    "label": "通常運航"
   }
 }
