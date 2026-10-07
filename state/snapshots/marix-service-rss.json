@@ -1,6 +1,10 @@
 {
-  "fetched_at": "2026-10-07T13:00:04.594Z",
+  "fetched_at": "2026-10-07T16:01:55.299Z",
   "items": [
+    {
+      "guid": "https://marixline.com/service/downstream20261008/",
+      "hash": "normal通常運航"
+    },
     {
       "guid": "https://marixline.com/service/downstream20261006/",
       "hash": "extra航行経路変更"
