@@ -169,5 +169,26 @@
     ],
     "date": "2026-10-06",
     "label": "航行経路変更"
+  },
+  "https://marixline.com/service/upstream20261008/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [
+      {
+        "kind": "no_call",
+        "ports": [
+          "与論港",
+          "和泊港"
+        ]
+      },
+      {
+        "kind": "conditional",
+        "ports": [
+          "本部港",
+          "亀徳港"
+        ]
+      }
+    ],
+    "date": "2026-10-08",
+    "label": "条件付運航"
   }
 }
