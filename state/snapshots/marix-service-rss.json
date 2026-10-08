@@ -1,21 +1,17 @@
 {
-  "fetched_at": "2026-10-07T23:40:05.230Z",
+  "fetched_at": "2026-10-08T01:31:15.195Z",
   "items": [
-    {
-      "guid": "https://marixline.com/service/downstream20261006/",
-      "hash": "extra航行経路変更"
-    },
     {
       "guid": "https://marixline.com/service/downstream20261008/",
       "hash": "conditional条件付運航"
     },
     {
-      "guid": "https://marixline.com/service/upstream20261006/",
-      "hash": "extra航行経路変更"
-    },
-    {
       "guid": "https://marixline.com/service/upstream20261008/",
       "hash": "conditional条件付運航"
+    },
+    {
+      "guid": "https://marixline.com/service/downstream20261006/",
+      "hash": "extra航行経路変更"
     },
     {
       "guid": "https://marixline.com/service/downstream20261004/",
@@ -24,6 +20,10 @@
     {
       "guid": "https://marixline.com/service/downstream20261002/",
       "hash": "normal通常運航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20261006/",
+      "hash": "extra航行経路変更"
     },
     {
       "guid": "https://marixline.com/service/upstream20261004/",
