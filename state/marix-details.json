@@ -195,5 +195,20 @@
     ],
     "date": "2026-10-08",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/upstream20261010/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [
+      {
+        "kind": "conditional",
+        "ports": [
+          "与論港",
+          "和泊港",
+          "亀徳港"
+        ]
+      }
+    ],
+    "date": "2026-10-10",
+    "label": "条件付運航"
   }
 }
