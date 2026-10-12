@@ -1,10 +1,6 @@
 {
-  "fetched_at": "2026-10-11T23:40:05.091Z",
+  "fetched_at": "2026-10-12T03:57:26.379Z",
   "items": [
-    {
-      "guid": "https://marixline.com/service/downstream20261010/",
-      "hash": "normal通常運航"
-    },
     {
       "guid": "https://marixline.com/service/downstream20261012/",
       "hash": "normal通常運航"
@@ -14,8 +10,8 @@
       "hash": "normal通常運航"
     },
     {
-      "guid": "https://marixline.com/service/upstream20261010/",
-      "hash": "conditional条件付運航"
+      "guid": "https://marixline.com/service/downstream20261010/",
+      "hash": "normal通常運航"
     },
     {
       "guid": "https://marixline.com/service/downstream20261008/",
@@ -32,6 +28,10 @@
     {
       "guid": "https://marixline.com/service/downstream20261002/",
       "hash": "normal通常運航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20261010/",
+      "hash": "conditional条件付運航"
     },
     {
       "guid": "https://marixline.com/service/upstream20261008/",
