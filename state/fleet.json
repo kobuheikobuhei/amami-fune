@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-10-13T02:22:50.661Z",
-  "from": "2026-10-12",
-  "to": "2026-10-16",
+  "checked_at": "2026-10-13T17:54:12.307Z",
+  "from": "2026-10-13",
+  "to": "2026-10-17",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -45,16 +45,16 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "up"
+      },
+      {
+        "date": "2026-10-17",
+        "ship": "フェリーあけぼの",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
-      {
-        "date": "2026-10-12",
-        "ship": "フェリーきかい",
-        "operator_id": "amamikaiun",
-        "name": "奄美海運",
-        "direction": "down"
-      },
       {
         "date": "2026-10-14",
         "ship": "フェリーきかい",
@@ -84,14 +84,20 @@
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "up"
+      },
+      {
+        "date": "2026-10-17",
+        "ship": "フェリーきかい",
+        "operator_id": "amamikaiun",
+        "name": "奄美海運",
+        "direction": "up"
       }
     ]
   },
   "problems": [],
   "notes": [
-    "2026-10-12 は両社とも鹿児島発の予定がありません",
     "2026-10-14 は両社とも鹿児島発の予定がありません",
-    "2026-10-12 は両社とも那覇発の予定がありません",
+    "2026-10-17 は両社とも鹿児島発の予定がありません",
     "2026-10-14 は両社とも那覇発の予定がありません",
     "2026-10-16 は両社とも那覇発の予定がありません"
   ]
