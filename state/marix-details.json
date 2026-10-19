@@ -179,5 +179,11 @@
     ],
     "date": "2026-10-19",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/downstream20261020/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-10-20",
+    "label": "通常運航"
   }
 }
