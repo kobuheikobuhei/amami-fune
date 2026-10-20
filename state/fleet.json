@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-10-20T01:28:37.645Z",
-  "from": "2026-10-19",
-  "to": "2026-10-23",
+  "checked_at": "2026-10-20T18:15:42.254Z",
+  "from": "2026-10-20",
+  "to": "2026-10-24",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -9,13 +9,6 @@
   },
   "departures": {
     "kagoshima_okinawa_down": [
-      {
-        "date": "2026-10-19",
-        "ship": "フェリー波之上",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
       {
         "date": "2026-10-21",
         "ship": "フェリーあけぼの",
@@ -26,6 +19,13 @@
       {
         "date": "2026-10-22",
         "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "down"
+      },
+      {
+        "date": "2026-10-24",
+        "ship": "フェリーあけぼの",
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "down"
@@ -52,16 +52,16 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "up"
+      },
+      {
+        "date": "2026-10-24",
+        "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
-      {
-        "date": "2026-10-19",
-        "ship": "フェリーきかい",
-        "operator_id": "amamikaiun",
-        "name": "奄美海運",
-        "direction": "down"
-      },
       {
         "date": "2026-10-21",
         "ship": "フェリーきかい",
@@ -91,6 +91,13 @@
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "up"
+      },
+      {
+        "date": "2026-10-24",
+        "ship": "フェリーきかい",
+        "operator_id": "amamikaiun",
+        "name": "奄美海運",
+        "direction": "up"
       }
     ]
   },
@@ -98,7 +105,6 @@
   "notes": [
     "2026-10-20 は両社とも鹿児島発の予定がありません",
     "2026-10-23 は両社とも鹿児島発の予定がありません",
-    "2026-10-19 は両社とも那覇発の予定がありません",
     "2026-10-22 は両社とも那覇発の予定がありません"
   ]
 }
