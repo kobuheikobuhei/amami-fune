@@ -196,5 +196,11 @@
     ],
     "date": "2026-10-20",
     "label": "航行経路変更"
+  },
+  "https://marixline.com/service/upstream20261022/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-10-22",
+    "label": "欠航"
   }
 }
