@@ -161,5 +161,11 @@
     "port_notes": [],
     "date": "2026-10-22",
     "label": "欠航"
+  },
+  "https://marixline.com/service/downstream20261023/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-10-23",
+    "label": "欠航"
   }
 }

@@ -1,9 +1,13 @@
 {
-  "fetched_at": "2026-10-21T23:00:05.056Z",
+  "fetched_at": "2026-10-21T23:20:06.113Z",
   "items": [
     {
       "guid": "https://marixline.com/service/downstream20261020/",
       "hash": "extra航行経路変更"
+    },
+    {
+      "guid": "https://marixline.com/service/downstream20261023/",
+      "hash": "cancelled欠航"
     },
     {
       "guid": "https://marixline.com/service/upstream20261022/",
