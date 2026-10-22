@@ -53,6 +53,25 @@ const TIMETABLE_LINE = /\d{1,2}[:：]\d{2}\s*[（(](入港|出港|着|発)[)）]
 const ARRIVAL_LINE = /\d{1,2}[:：]\d{2}\s*([（(](入港|着)[)）]|着)/;
 
 /**
+ * 便の行の次に状態だけを置く書式を読む。
+ *
+ * マルエーフェリーの発表は便と状態を2列の表で並べるため、本文を行にすると
+ * 「10月23日(金)07:00那覇港発 上り便」「欠航」と分かれる。便の行だけを見て
+ * 題名に落ちると、題名が古いまま本文が欠航に書き換わった発表で、
+ * 欠航の便を条件付き運航として出してしまう。実際に起きた。
+ *
+ * 他社の書式を巻き込まないよう、条件は狭く取る。日付を含まない短い行で、
+ * 状態の語から成るものに限る。文章の中に出てくる語は拾わない。
+ */
+const STATUS_ONLY_MAX = 12;
+
+function statusOnlyLine(line, baseDate) {
+  if (!line || line.length > STATUS_ONLY_MAX) return null;
+  if (extractDateUnits(line, baseDate).length) return null;
+  return classify(line);
+}
+
+/**
  * 本文を行単位で解析し、便ごとの状態を取り出す。
  * 日付を含まない行はイベントにしない（事実が特定できないため）。
  */
@@ -74,7 +93,8 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
   let blockHeading = '';
   const blockNotes = new Map();
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const heading = headingIn(line);
     if (heading) {
       const hs = classify(heading);
@@ -100,7 +120,10 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
     seenDated = true;
     if (units.length === 1 && /[上下]り便|臨時便/.test(line)) underVoyage = true;
 
-    const status = classify(line) ?? headingStatus ?? titleStatus;
+    // 行そのもの → すぐ下の状態だけの行 → 見出し → 題名 の順に確かめる。
+    // 題名は発表が書き換わっても直されないことがあり、いちばん当てにならない。
+    const nextLine = statusOnlyLine(lines[i + 1], baseDate) ? lines[i + 1] : null;
+    const status = classify(line) ?? classify(nextLine ?? '') ?? headingStatus ?? titleStatus;
     if (!status) continue;
 
     // 情報の確かさを点数化する。
@@ -117,7 +140,8 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
         direction: specificity === 1 ? null : extractDirection(line) ?? blockDirection,
         origin: specificity === 1 ? null : extractOrigin(line),
         // 一覧の行には「臨時便」の語が無く、塊の見出し【臨時便(下り)】にだけある。
-        detail: detailPhrase(line, status) ?? detailPhrase(heading ?? '', status) ??
+        detail: detailPhrase(line, status) ?? detailPhrase(nextLine ?? '', status) ??
+          detailPhrase(heading ?? '', status) ??
           (specificity === 1 ? null : detailPhrase(blockHeading, status)) ?? null,
         specificity,
         line,
