@@ -51,10 +51,22 @@ const targets = [];
 for (const c of toCandidates(observations, { now })) {
   const prev = ledger.get(c.event_key);
   if (!prev?.published_post?.id) continue;
-  if (prev.status === c.status && prev.detail === c.detail) continue;
+  const sameRelated = JSON.stringify(prev.related ?? []) === JSON.stringify(c.related ?? []);
+  if (prev.status === c.status && prev.detail === c.detail && sameRelated) continue;
 
-  // 発表そのものは変わっていないので、更新履歴は足さずに判定だけ差し替える
-  const event = { ...prev, status: c.status, detail: c.detail };
+  // 発表そのものは変わっていないので、更新履歴は足さずに判定だけ差し替える。
+  //
+  // related（同じ発表に含まれる他の便）も入れ替える。解析を直すと同じ発表の
+  // 他の便の判定も変わるため、ここを古いまま残すと、記事の本体は欠航なのに
+  // 「同じ発表に含まれる情報」だけが条件付き運航のまま食い違う。
+  const event = {
+    ...prev,
+    status: c.status,
+    detail: c.detail,
+    evidence: c.evidence,
+    related: c.related,
+    port_notes: c.port_notes,
+  };
   targets.push({ prev, event });
 }
 
