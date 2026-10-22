@@ -7,9 +7,11 @@
 // 出港日は各社の公式情報、時刻は公式の時刻表による。推測は入れない。
 
 import { COLOR } from './style.js';
+import { STATUS } from './lib/status.js';
 
 const RUNNING = '#15803d';
 const NEXT = '#1d4ed8';
+const CANCELLED = '#dc2626';
 
 function jpDateTime(iso) {
   const d = new Date(new Date(iso).getTime() + 9 * 3600 * 1000);
@@ -76,25 +78,52 @@ function noticeFor(v, events, labelOf) {
     (!e.ship || e.ship === v.ship) &&
     (!e.direction || e.direction === v.direction)
   );
-  return hit ? { text: labelOf(hit), url: hit.published_post?.url ?? null } : null;
+  return hit
+    ? { text: labelOf(hit), url: hit.published_post?.url ?? null, status: hit.status ?? null }
+    : null;
 }
 
-/** 片方向ぶんの並び */
+/** 欠航の1隻。時刻表の上では動いている時間でも、この船は出ていない */
+function cancelledBox(v, note) {
+  return box(tag('欠航', CANCELLED) + shipLine(v) + span(v) + noteLine(note), CANCELLED);
+}
+
+/**
+ * 片方向ぶんの並び。
+ *
+ * 「航行中」「次の出港」を時刻表だけで決めると、欠航の発表が出ている便まで
+ * 緑の「航行中」で出てしまう。動いていない船を動いていると告げるのが、
+ * この画面でいちばん紛らわしい。欠航の便は札を「欠航」に変える。
+ *
+ * 札を変えるだけで、便そのものは消さない。消すと、載っていないのが
+ * 欠航なのか載せ忘れなのか読者に分からなくなる。
+ */
 function directionBlock({ voyages, label, now, events, labelOf }) {
-  const running = voyages.filter((v) => v.departAt <= now && now < v.arriveAt);
-  const next = voyages.find((v) => v.departAt > now) ?? null;
-  if (!running.length && !next) return '';
+  const marked = voyages.map((v) => {
+    const note = noticeFor(v, events, labelOf);
+    return { v, note, cancelled: note?.status === STATUS.CANCELLED };
+  });
+
+  const sailing = marked.filter((m) => m.v.departAt <= now && now < m.v.arriveAt);
+  const next = marked.find((m) => m.v.departAt > now) ?? null;
+  if (!sailing.length && !next) return '';
 
   // 航行中が無いことは、隠さずそのまま示す。
   // 何も書かないと、載せ忘れているのか本当に無いのかが読者に分からない。
-  const idle = !running.length
+  // 欠航で1隻も動いていないときも、ここに出る。
+  const idle = !sailing.some((m) => !m.cancelled)
     ? box(tag('航行中', COLOR.muted) +
         '<div style="color:' + COLOR.muted + '">いま航行している便はありません</div>', COLOR.line)
     : '';
 
+  const nextBlock = next
+    ? (next.cancelled ? cancelledBox(next.v, next.note) : nextBox(next.v, next.note))
+    : '';
+
   return '<h4 style="margin:14px 0 8px;font-size:1em">' + label + '</h4>' +
-    idle + running.map((v) => runningBox(v, now, noticeFor(v, events, labelOf))).join('') +
-    (next ? nextBox(next, noticeFor(next, events, labelOf)) : '');
+    idle +
+    sailing.map((m) => (m.cancelled ? cancelledBox(m.v, m.note) : runningBox(m.v, now, m.note))).join('') +
+    nextBlock;
 }
 
 /** 航路ひとつぶん */
