@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-10-23T09:20:00.564Z",
-  "from": "2026-10-22",
-  "to": "2026-10-26",
+  "checked_at": "2026-10-23T21:20:00.791Z",
+  "from": "2026-10-23",
+  "to": "2026-10-27",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -9,13 +9,6 @@
   },
   "departures": {
     "kagoshima_okinawa_down": [
-      {
-        "date": "2026-10-22",
-        "ship": "フェリー波之上",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
       {
         "date": "2026-10-24",
         "ship": "フェリーあけぼの",
@@ -26,6 +19,13 @@
       {
         "date": "2026-10-25",
         "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "down"
+      },
+      {
+        "date": "2026-10-27",
+        "ship": "フェリーあけぼの",
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "down"
@@ -52,6 +52,13 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "up"
+      },
+      {
+        "date": "2026-10-27",
+        "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
@@ -72,14 +79,14 @@
     ],
     "amamikaiun_up": [
       {
-        "date": "2026-10-22",
+        "date": "2026-10-24",
         "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "up"
       },
       {
-        "date": "2026-10-24",
+        "date": "2026-10-27",
         "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
@@ -91,7 +98,6 @@
   "notes": [
     "2026-10-23 は両社とも鹿児島発の予定がありません",
     "2026-10-26 は両社とも鹿児島発の予定がありません",
-    "2026-10-22 は両社とも那覇発の予定がありません",
     "2026-10-25 は両社とも那覇発の予定がありません"
   ]
 }
