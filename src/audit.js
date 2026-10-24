@@ -44,15 +44,36 @@ function daysSince(iso, now) {
   return Math.floor((new Date(now) - new Date(iso)) / 86400000);
 }
 
+/**
+ * ブログの記事を全件取る。
+ *
+ * Blogger は1回に最大100件しか返さない。続きを取らないと、101件目より古い
+ * 記事が「ブログに存在しない」ことになり、台帳が指す古い記事をことごとく
+ * 消失として報告する。記事が100件を超えた時点から誤報が始まり、増え続けた。
+ * 実際に13件の誤報が出て、本物の異常がその中に埋もれていた。
+ *
+ * 重複と孤立の判定も同じ一覧を使う。打ち切ると見落とす側に転ぶ。
+ */
 async function fetchPosts(credentials) {
   const token = await getAccessToken(credentials);
-  const res = await fetch(
-    `https://www.googleapis.com/blogger/v3/blogs/${credentials.blogId}/posts?fetchBodies=false&maxResults=100`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  const json = await res.json();
-  if (!res.ok) throw new Error(json?.error?.message ?? `HTTP ${res.status}`);
-  return (json.items ?? []).map((p) => ({
+  const items = [];
+  let pageToken = null;
+
+  do {
+    const url = new URL(`https://www.googleapis.com/blogger/v3/blogs/${credentials.blogId}/posts`);
+    url.searchParams.set('fetchBodies', 'false');
+    url.searchParams.set('maxResults', '100');
+    if (pageToken) url.searchParams.set('pageToken', pageToken);
+
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error?.message ?? `HTTP ${res.status}`);
+
+    items.push(...(json.items ?? []));
+    pageToken = json.nextPageToken ?? null;
+  } while (pageToken);
+
+  return items.map((p) => ({
     id: p.id,
     title: p.title,
     url: p.url,
