@@ -148,6 +148,22 @@ export class BloggerPublisher {
     return { id: r.id, url: r.url ?? null };
   }
 
+  /**
+   * 公開済みの投稿を下書きに戻す。
+   *
+   * 誤って載せた記事を読者から見えなくするのに、削除までする必要はない。
+   * 下書きなら Blogger に残り、判断を誤っていたと分かれば公開し直せる。
+   * 消してしまうと、何をどう間違えたのかを後から確かめる手立ても消える。
+   */
+  async revertToDraft(postId) {
+    if (this.dryRun) return { reverted: postId, dryRun: true };
+    await this.auth();
+    const r = await api(this.token, `/blogs/${this.credentials.blogId}/posts/${postId}/revert`, {
+      method: 'POST',
+    });
+    return { reverted: r.id ?? postId };
+  }
+
   /** 投稿を削除する。試験投稿の後始末と、誤投稿の撤回に使う */
   async deletePost(postId) {
     if (this.dryRun) return { deleted: postId, dryRun: true };
