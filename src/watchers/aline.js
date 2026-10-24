@@ -111,6 +111,12 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
     const units = extractDateUnits(line, baseDate);
     if (units.length === 0) continue;
 
+    // 「10月6日(火)和泊港 抜港」のように、寄らない港を日付付きで並べる行がある。
+    // 時刻が無いため寄港時刻の行としては外れず、便として拾うと
+    // 「和泊発の便」という、実際には寄りもしない便の記事ができてしまう。
+    // 上で寄港地の注記として記録済みなので、便にはしない。
+    if (notes.length && !/便/.test(line)) continue;
+
     if (underVoyage && TIMETABLE_LINE.test(line) && !/便/.test(line)) continue;
     // 奄美海運は見出しを置かずに「9/18(金) 鹿児島本港北埠頭17:30発」
     // 「9/19(土) 喜界4:30着/5:00発」と並べる。着く時刻を含む行は、上に書かれた便の
@@ -180,7 +186,21 @@ export function parseBody(bodyText, { baseDate, titleStatus }) {
     const { block: b, ...rest } = e;
     kept.set(key, { ...rest, port_notes: [...(blockNotes.get(b) ?? []), ...sharedNotes] });
   }
-  return [...kept.values()].sort((a, b) => a.service_date.localeCompare(b.service_date));
+
+  // 同じ便を、出発港の分かる行と分からない行の両方から拾うことがある。
+  // 「10月5日(月)07:00那覇港発 上り便」と
+  // 「※10月5日上り便は抜港の可能性が高い条件付き運航となります。」のような
+  // 補足文がその例。台帳の鍵に出発港が入るため、別の便として記事が2本できる。
+  // 同じ日・同じ状態・同じ方向なら、出発港の分かっている側だけを残す。
+  const hasOrigin = new Set();
+  for (const e of kept.values()) {
+    if (e.origin) hasOrigin.add(`${e.service_date}|${e.service_date_end ?? ''}|${e.status}|${e.direction ?? ''}`);
+  }
+
+  return [...kept.values()]
+    .filter((e) => e.origin ||
+      !hasOrigin.has(`${e.service_date}|${e.service_date_end ?? ''}|${e.status}|${e.direction ?? ''}`))
+    .sort((a, b) => a.service_date.localeCompare(b.service_date));
 }
 
 export async function watchAline(source, { userAgent }) {

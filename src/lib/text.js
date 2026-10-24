@@ -232,6 +232,10 @@ export function extractPortNotes(text) {
     } else if (/寄港(いた|致)?し(ま(せん|せんので)|ない)|寄港(でき|出来)ません/.test(line)) {
       // 「寄港致しません」と漢字で書かれることがある（9/26 フェリーあけぼの）。
       notes.push({ kind: "no_call", ports });
+    } else if (/抜港/.test(line)) {
+      // 「10月6日(火)和泊港 抜港」と、港名と抜港だけを並べる書き方がある。
+      // どの分岐にも入らず注記が落ちていた。抜港はその港に寄らないこと。
+      notes.push({ kind: "no_call", ports });
     } else if (/変更/.test(line)) {
       notes.push({ kind: "changed", ports });
     }
