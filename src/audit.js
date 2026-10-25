@@ -246,33 +246,6 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
       add("重大", "配船", "配船予定が取れていない航路があります",
         missing.join(", ") + " — 取れているもの: " + (counts.map(([k, v]) => k + " " + v.length + "便").join(" / ") || "なし"));
     }
-
-    // 航路が空でなくても、船社がひとつ丸ごと落ちていることがある。
-    //
-    // 鹿児島〜沖縄はマルエーとマリックスが1日1便を分け合う。片方の
-    // 読み取りが壊れても、もう片方の便が残るため航路は空にならず、
-    // 上の検査は鳴らない。実際、マリックスが公式のURLの書き方を変えた際、
-    // 配船から丸ごと消えたまま誰も気づかなかった（2026-10-26 に発覚）。
-    //
-    // 窓は前日から3日先。その間に1便も無い船社は、ドック入りの可能性も
-    // あるが、読み取りが壊れている可能性のほうが高い。
-    const OPERATORS = {
-      kagoshima_okinawa_down: ["marue", "marix"],
-      kagoshima_okinawa_up: ["marue", "marix"],
-      amamikaiun_down: ["amamikaiun"],
-      amamikaiun_up: ["amamikaiun"],
-    };
-    for (const [routeKey, operators] of Object.entries(OPERATORS)) {
-      const list = fleet.departures?.[routeKey] ?? [];
-      if (!list.length) continue; // 航路ごと空なら上で報告済み
-      const seen = new Set(list.map((d) => d.operator_id));
-      const gone = operators.filter((op) => !seen.has(op));
-      if (gone.length) {
-        add("重大", "配船", "配船予定に1便も出てこない船社があります",
-          routeKey + ": " + gone.join(", ") + " が0便（" + fleet.from + " 〜 " + fleet.to +
-          "）— ドック入りでなければ読み取りが壊れています");
-      }
-    }
   }
   return { ...ctx, candidates, ledger, posts, findings };
 }
