@@ -1,12 +1,12 @@
 {
-  "fetched_at": "2026-10-24T23:50:05.056Z",
+  "fetched_at": "2026-10-25T00:00:04.882Z",
   "items": [
     {
-      "guid": "https://marixline.com/service/downstream20261023/",
+      "guid": "https://marixline.com/service/upstream20261025/",
       "hash": "cancelled欠航"
     },
     {
-      "guid": "https://marixline.com/service/upstream20261025/",
+      "guid": "https://marixline.com/service/downstream20261023/",
       "hash": "cancelled欠航"
     },
     {
