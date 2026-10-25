@@ -123,6 +123,12 @@ jobs:
             # state/ は実行間で引き継ぐ必要がある。台帳を失うと、すでに投稿した
             # 欠航をもう一度投稿することになる。周ごとに保存し、途中で
             # ジョブが止まってもそこまでの結果を残す。
+            # このジョブが記録してよいのは state/ だけ。取り出した時点の
+            # ソースが居座っていることがあるため、毎回いったん全部おろしてから
+            # state/ だけを載せる。これを怠ると、ジョブの実行中に入った
+            # ソースの修正を、古い中身で上書きして巻き戻してしまう。
+            # 実際に marix の修正と点検の項目が巻き戻された（2026-10-26）。
+            git reset
             git add -A state/
             if git diff --staged --quiet; then
               echo "状態に変化なし"
@@ -135,8 +141,12 @@ jobs:
                 # 集めた内容（作業ツリー）はそのまま残すので、次の周が
                 # まとめて保存し直す。台帳を捨てると投稿済みの欠航を
                 # もう一度投稿することになるため、向こうを丸ごと採らない。
+                #
+                # --soft にしないこと。ワーキングツリーの古いソースが
+                # そのままステージに残り、次の周の commit が巻き戻しを
+                # 記録してしまう。--mixed なら state/ だけを載せ直せる。
                 git rebase --abort 2>/dev/null || true
-                git fetch origin "$GITHUB_REF_NAME" && git reset --soft FETCH_HEAD
+                git fetch origin "$GITHUB_REF_NAME" && git reset --mixed FETCH_HEAD
               fi
             fi
 

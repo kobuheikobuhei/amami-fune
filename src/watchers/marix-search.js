@@ -21,8 +21,12 @@ export function parseResult(html, date) {
   // 時刻表そのものが返らない日は、その区間に便が無い。
   if (!html.includes('航路時刻表')) return null;
 
-  const slug = html.match(/marixline\.com\/(queen_coral_[a-z]+)\/"[\s\S]{0,300}?運航予定の船/)?.[1];
-  const ship = SHIP_BY_SLUG[slug];
+  // 船のページのURLは区切りが揺れる。2026年10月の時点で、公式は
+  // queen_coral_plus から queen-coral-plus（ハイフン）に変わっていた。
+  // アンダースコアだけを見ていたため船名を取れず、便の無い日として
+  // 扱い、マリックスの配船が丸ごと消えていた。どちらでも読む。
+  const slug = html.match(/marixline\.com\/(queen[-_]coral[-_][a-z]+)\/"[\s\S]{0,300}?運航予定の船/)?.[1];
+  const ship = SHIP_BY_SLUG[slug?.replace(/-/g, '_')];
   if (!ship) return null;
 
   // 表示された出港時刻。持っている時刻表と食い違っていないかを確かめるために使う。
