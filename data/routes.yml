@@ -38,6 +38,12 @@ operators:
     references:
       - label: 時刻表
         url: https://www.town.setouchi.lg.jp/senpaku/jikokuhyou.html
+    # 掲載していない航路こそ、読者をどこへ送るかが大事になる。
+    # 町の公式サイトには運航状況が無く（時刻表だけ）、そこへ送ると
+    # 行き止まりになる。町が運航状況を流しているのはXだけ。
+    status_link:
+      label: 運航状況（公式X）
+      url: https://x.com/st_liner_info
     note: 運航状況は公式サイトに掲載されず、X と防災情報メールでのみ配信される
 
   kyodogumi:

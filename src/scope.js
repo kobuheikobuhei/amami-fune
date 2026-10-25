@@ -25,7 +25,17 @@ export function buildScopeNotice({ routes = [], routeIds = new Set(), operators 
       const label = op?.site
         ? '<a href="' + op.site + '" target="_blank" rel="noopener" style="color:#1d4ed8">' + name + '</a>'
         : name;
-      return '<li>' + label + '</li>';
+
+      // 掲載していない航路こそ、読者をどこへ送るかが大事になる。
+      // 瀬戸内町は公式サイトに運航状況が無く（時刻表だけ）、会社名の
+      // リンクだけでは行き止まりになる。運航状況の発信元が別にある
+      // 船社は、そこへ直接行けるようにする。
+      const status = op?.status_link?.url
+        ? '　<a href="' + op.status_link.url + '" target="_blank" rel="noopener" ' +
+          'style="color:#1d4ed8">' + (op.status_link.label ?? '運航状況') + '</a>'
+        : '';
+
+      return '<li>' + label + status + '</li>';
     }).join('') +
     '</ul>';
 
