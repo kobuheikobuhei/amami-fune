@@ -125,9 +125,13 @@ function directionBlock({ voyages, label, now, events, labelOf }) {
   // 航行中が無いことは、隠さずそのまま示す。
   // 何も書かないと、載せ忘れているのか本当に無いのかが読者に分からない。
   // 欠航で1隻も動いていないときも、ここに出る。
+  //
+  // ただし囲みにはしない。航路と向きで4つに分かれるため、便が無い時間帯は
+  // 同じ囲みが4つ並ぶ。読み手はそれを読み飛ばす癖がつき、下にある欠航の
+  // 知らせまで一緒に飛ばしてしまう。伝える中身は変えず、1行に落とす。
   const idle = !sailing.some((m) => !m.cancelled)
-    ? box(tag('航行中', COLOR.muted) +
-        '<div style="color:' + COLOR.muted + '">いま航行している便はありません</div>', COLOR.line)
+    ? '<div style="color:' + COLOR.muted + ';font-size:0.94em;line-height:1.8;' +
+      'margin:0 0 9px">いま航行している便はありません</div>'
     : '';
 
   const nextBlock = next
