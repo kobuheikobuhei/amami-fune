@@ -8,6 +8,7 @@
 
 import { COLOR } from './style.js';
 import { STATUS } from './lib/status.js';
+import { jstDate } from './lib/text.js';
 
 const RUNNING = '#15803d';
 const NEXT = '#1d4ed8';
@@ -104,7 +105,20 @@ function directionBlock({ voyages, label, now, events, labelOf }) {
     return { v, note, cancelled: note?.status === STATUS.CANCELLED };
   });
 
-  const sailing = marked.filter((m) => m.v.departAt <= now && now < m.v.arriveAt);
+  // 前の日に出るはずだった欠航の便は、もう出さない。
+  //
+  // 欠航した船は進んでいないのに、時刻表の上では「出港済み・到着前」の
+  // 時間帯に入るため、着くはずだった時刻まで航行中の枠に居座っていた。
+  // 昨日18時の便が、今日の便より上に出ている状態になる。
+  //
+  // 当日のうちは残す。1時間前に欠航した便は、乗る予定だった人に
+  // とっていちばん大事な情報で、日付が変わるまでは現在の話に属する。
+  const today = jstDate(now);
+  const overAndGone = (m) => m.cancelled && m.v.departAt <= now && jstDate(m.v.departAt) < today;
+
+  const sailing = marked.filter(
+    (m) => m.v.departAt <= now && now < m.v.arriveAt && !overAndGone(m)
+  );
   const next = marked.find((m) => m.v.departAt > now) ?? null;
   if (!sailing.length && !next) return '';
 
