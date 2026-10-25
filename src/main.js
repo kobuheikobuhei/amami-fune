@@ -128,12 +128,43 @@ async function main() {
     if (firstRun) seedOnlySources.add(source.id);
 
     try {
-      const r = await WATCHERS[source.id](source, {
+      const opts = {
         userAgent: cfg.userAgent,
         known: knownUrls,
         details: marixDetails,
         today: jstDate(now),
-      });
+      };
+
+      let r;
+      try {
+        r = await WATCHERS[source.id](source, opts);
+      } catch (err) {
+        // 本線が取れないときは予備を試す。
+        //
+        // 監視先の作りが変われば本線は止まる。止まっている間、読者には
+        // 欠航が出ないのではなく「発表が無い」ように見える。予備で
+        // しのげるなら、その間も載せ続ける。
+        //
+        // ただし予備で通っても本線が壊れていることは必ず知らせる。
+        // 黙って予備で走り続けると、本線は直されないまま忘れられる。
+        const urls = source.fallback_urls ?? [];
+        if (!urls.length) throw err;
+
+        const got = [];
+        let fetchedAt = null;
+        for (const url of urls) {
+          const sub = await WATCHERS[source.id]({ ...source, url }, opts);
+          got.push(...sub.observations);
+          fetchedAt = sub.fetchedAt ?? fetchedAt;
+        }
+        // 同じ記事が複数の予備に出ることがある
+        const byGuid = new Map(got.map((o) => [o.guid ?? o.link, o]));
+        r = { fetchedAt, observations: [...byGuid.values()] };
+
+        log('  予備  ' + source.id + '  本線が失敗（' + err.message + '）→ 予備' + urls.length + '件で代替');
+        notify.push('- 本線の取得が失敗し、予備で代替しました: ' + source.id + ' — ' + err.message);
+      }
+
       observations.push(...r.observations);
       recordSuccess(health, source.id, r.fetchedAt);
       log('  ok   ' + source.id + '  記事' + r.observations.length + '件' + (firstRun ? ' [初回：記録のみ]' : ''));

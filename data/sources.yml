@@ -26,6 +26,12 @@ sources:
     confidence: A
     verified: 2026-09-04
     robots: allow            # Disallow は /cms/wp-admin/ のみ
+    # 本線が取れなくなったときに使う。船別のフィードで、2つ合わせると
+    # 航路のフィードと同じ記事が揃う。形式も同じRSSなので同じ解析器で読める。
+    # 2026-10-26 に確認（あけぼの3件・波之上2件、本線と同じ5件）。
+    fallback_urls:
+      - https://www.aline-ferry.com/status/status-route/route-kagoshima/ferry-akebono/feed/
+      - https://www.aline-ferry.com/status/status-route/route-kagoshima/ferry-naminoue/feed/
     notes: |
       WordPress の運航状況カテゴリのRSS。取得確認済み。
       記事URLは /status/route-kagoshima/<船名スラッグ>/<ID>/ の形式で、
@@ -53,6 +59,10 @@ sources:
     confidence: A
     verified: 2026-09-04
     robots: allow
+    # 本線が取れなくなったときに使う。2026-10-26 に確認（きかい2件・あまみ2件）。
+    fallback_urls:
+      - https://www.aline-ferry.com/status/status-route/route-amami/ferry-kikai/feed/
+      - https://www.aline-ferry.com/status/status-route/route-amami/ferry-amami/feed/
     notes: |
       記事URLは /status/route-amami/<船名スラッグ>/<ID>/（ferry-kikai / ferry-amami）。
       船別フィードも存在する:
