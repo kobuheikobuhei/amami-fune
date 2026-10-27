@@ -141,5 +141,11 @@
     ],
     "date": "2026-10-28",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/downstream20261028/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [],
+    "date": "2026-10-28",
+    "label": "欠航"
   }
 }
