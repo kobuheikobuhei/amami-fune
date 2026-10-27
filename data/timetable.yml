@@ -14,6 +14,8 @@
 kagoshima_okinawa_down:
   label: 下り便
   direction: down
+  # 欠航で配船予定から消えた便を、台帳の発表から補うために持つ。
+  route_ids: [marue-main, marix-main]
   group: 鹿児島〜奄美群島〜沖縄
   operators: マルエーフェリー・マリックスライン
   summary: 鹿児島 → 奄美群島 → 沖縄
@@ -60,6 +62,8 @@ kagoshima_okinawa_down:
 kagoshima_okinawa_up:
   label: 上り便
   direction: up
+  # 欠航で配船予定から消えた便を、台帳の発表から補うために持つ。
+  route_ids: [marue-main, marix-main]
   group: 鹿児島〜奄美群島〜沖縄
   operators: マルエーフェリー・マリックスライン
   summary: 沖縄 → 奄美群島 → 鹿児島
@@ -120,6 +124,8 @@ kagoshima_okinawa_up:
 amamikaiun_down:
   label: 下り便
   direction: down
+  # 欠航で配船予定から消えた便を、台帳の発表から補うために持つ。
+  route_ids: [amamikaiun-kikai]
   group: 鹿児島〜喜界〜奄美大島〜徳之島
   operators: 奄美海運
   summary: 鹿児島 → 喜界 → 名瀬 → 古仁屋 → 平土野
@@ -159,6 +165,8 @@ amamikaiun_down:
 amamikaiun_up:
   label: 上り便
   direction: up
+  # 欠航で配船予定から消えた便を、台帳の発表から補うために持つ。
+  route_ids: [amamikaiun-kikai]
   group: 鹿児島〜喜界〜奄美大島〜徳之島
   operators: 奄美海運
   summary: 平土野 → 古仁屋 → 名瀬 → 喜界 → 鹿児島

@@ -37,7 +37,10 @@ const normalByRoute = normalShips(obs, { now }).reduce((a, n) => ((a[n.route_id]
 
 let fleet = readFleet();
 if (shouldRefresh(fleet, now)) fleet = await fetchFleet({ userAgent: cfg.userAgent, now, timetables: cfg.timetables });
-const fleetView = buildFleetView(fleet, cfg.timetables);
+const fleetView = buildFleetView(fleet, cfg.timetables, {
+  events: Object.values(eventsByRoute).flat(),
+  routes: cfg.routes,
+});
 
 const page = buildDailyPage({
   routes: [...routeIds].map((id) => routeById[id]).filter(Boolean),

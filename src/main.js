@@ -380,7 +380,12 @@ async function main() {
     }
   }
 
-  const fleetView = buildFleetView(fleet, cfg.timetables);
+  // 台帳も渡す。欠航した日は会社の配船予定から便が消えるため、
+  // 発表のある便を「欠航」として戻せるようにする。
+  const fleetView = buildFleetView(fleet, cfg.timetables, {
+    events: Object.values(eventsByRouteAll).flat(),
+    routes: cfg.routes,
+  });
 
   try {
     const dailyPage = buildDailyPage({
