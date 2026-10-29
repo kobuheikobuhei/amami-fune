@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-10-28T13:45:06.886Z",
-  "from": "2026-10-27",
-  "to": "2026-10-31",
+  "checked_at": "2026-10-29T04:00:26.534Z",
+  "from": "2026-10-28",
+  "to": "2026-11-01",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -9,13 +9,6 @@
   },
   "departures": {
     "kagoshima_okinawa_down": [
-      {
-        "date": "2026-10-27",
-        "ship": "フェリーあけぼの",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
       {
         "date": "2026-10-29",
         "ship": "フェリー波之上",
@@ -37,16 +30,17 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "down"
+      },
+      {
+        "date": "2026-11-01",
+        "ship": "クイーンコーラルクロス",
+        "depart": "18:00",
+        "operator_id": "marix",
+        "name": "マリックスライン",
+        "direction": "down"
       }
     ],
     "kagoshima_okinawa_up": [
-      {
-        "date": "2026-10-27",
-        "ship": "フェリー波之上",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "up"
-      },
       {
         "date": "2026-10-28",
         "ship": "クイーンコーラルプラス",
@@ -68,6 +62,14 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "up"
+      },
+      {
+        "date": "2026-11-01",
+        "ship": "クイーンコーラルプラス",
+        "depart": "07:00",
+        "operator_id": "marix",
+        "name": "マリックスライン",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
@@ -87,13 +89,6 @@
       }
     ],
     "amamikaiun_up": [
-      {
-        "date": "2026-10-27",
-        "ship": "フェリーきかい",
-        "operator_id": "amamikaiun",
-        "name": "奄美海運",
-        "direction": "up"
-      },
       {
         "date": "2026-10-29",
         "ship": "フェリーきかい",
