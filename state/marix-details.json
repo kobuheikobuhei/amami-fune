@@ -119,5 +119,17 @@
     "port_notes": [],
     "date": "2026-10-28",
     "label": "欠航"
+  },
+  "https://marixline.com/service/downstream20261030/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-10-30",
+    "label": "通常運航"
+  },
+  "https://marixline.com/service/upstream20261030/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [],
+    "date": "2026-10-30",
+    "label": "欠航"
   }
 }

@@ -1,6 +1,10 @@
 {
-  "fetched_at": "2026-10-29T13:00:03.720Z",
+  "fetched_at": "2026-10-29T17:55:58.408Z",
   "items": [
+    {
+      "guid": "https://marixline.com/service/downstream20261030/",
+      "hash": "normal通常運航"
+    },
     {
       "guid": "https://marixline.com/service/downstream20261028/",
       "hash": "cancelled欠航"
@@ -8,6 +12,10 @@
     {
       "guid": "https://marixline.com/service/upstream20261028/",
       "hash": "conditional条件付運航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20261030/",
+      "hash": "cancelled欠航"
     },
     {
       "guid": "https://marixline.com/service/downstream20261026/",
