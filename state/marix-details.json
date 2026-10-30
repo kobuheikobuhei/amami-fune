@@ -1,17 +1,4 @@
 {
-  "https://marixline.com/service/upstream20261016/": {
-    "ship": "クイーンコーラルプラス",
-    "port_notes": [
-      {
-        "kind": "conditional",
-        "ports": [
-          "和泊港"
-        ]
-      }
-    ],
-    "date": "2026-10-16",
-    "label": "条件付運航"
-  },
   "https://marixline.com/service/downstream20261017/": {
     "ship": "クイーンコーラルプラス",
     "port_notes": [
