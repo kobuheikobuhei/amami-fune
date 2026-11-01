@@ -41,6 +41,22 @@ function parseLink(link) {
   };
 }
 
+/**
+ * 発表の書き手として公式が入れている船名（「奄美海運 フェリーあまみ」）。
+ *
+ * 船名はURLの区分からも取れるが、区分は後から付け替えられる。
+ * 「フェリーあまみ運航再開」の記事が ferry-kikai の区分へ移されており、
+ * URLだけを見ると、あまみの再開をきかいの発表として読むことになる
+ * （2026-11-01に気づいた）。書き手の名前と題名は、どちらもあまみを指していた。
+ *
+ * どちらも公式が付けた情報だが、書き手の名前のほうが発表そのものに近い。
+ * 区分は後から整理されるもので、整理のついでに動く。
+ */
+function shipFromCreator(creator) {
+  if (!creator) return null;
+  return Object.values(SHIP_BY_SLUG).find((name) => creator.includes(name)) ?? null;
+}
+
 /** 行中の最後の見出し【…】《…》を返す */
 function headingIn(line) {
   const matches = [...line.matchAll(/[【《]([^】》]{1,20})[】》]/g)];
@@ -208,7 +224,8 @@ export async function watchAline(source, { userAgent }) {
 
   const observations = items.map((item) => {
     const body = cutContactBlock(stripPhoneNumbers(htmlToText(item.contentHtml)));
-    const { ship, routeId, operatorId } = parseLink(item.link);
+    const { ship: shipBySlug, routeId, operatorId } = parseLink(item.link);
+    const ship = shipFromCreator(item.creator) ?? shipBySlug;
     const baseDate = item.pubDate ?? fetchedAt;
 
     // 記事全体の状態はタイトルで決める。本文の付随的な語に引きずられないようにする。
