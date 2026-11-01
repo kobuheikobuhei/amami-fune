@@ -179,7 +179,10 @@ function routeBlock(route, { now, events, labelOf }) {
  * 解析が壊れているときは何も出さない。誤った予定は、示さないより有害。
  */
 export function buildFleetSection({ fleet, now, events = [], labelOf = () => '発表あり' }) {
-  if (!fleet || fleet.problems?.length) return '';
+  // 範囲の分からない矛盾があるときは何も出さない。誤った予定は、示さないより有害。
+  // 範囲の分かっている矛盾（どの航路が壊れているか言えるもの）は、その航路の
+  // 予定だけが取り下げられて届く。確かな航路を道連れにはしない。
+  if (!fleet || fleet.unscoped?.length) return '';
 
   const t = new Date(now).toISOString();
   const blocks = (fleet.routes ?? [])

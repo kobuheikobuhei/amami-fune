@@ -367,13 +367,13 @@ async function main() {
         // もっともらしい誤った予定を載せるのは、載せないより有害。
         log("  配船予定に矛盾: " + fetched.problems.join(" / "));
         notify.push("- 配船予定の突き合わせで矛盾: " + fetched.problems.join(" / "));
-        fleet = { ...fetched, departures: {} };
-      } else {
-        fleet = fetched;
-        log("  配船予定を更新: " + Object.entries(fetched.departures)
-          .map(([k, v]) => k + " " + v.length + "便").join(" / ") +
-          "（" + fetched.from + "〜" + fetched.to + "）");
       }
+      // 矛盾の出た航路は fetchFleet がすでに取り下げている。範囲の分からない
+      // 矛盾が残っているときだけ、何を信じてよいか判断できないので全部を止める。
+      fleet = fetched.unscoped?.length ? { ...fetched, departures: {} } : fetched;
+      log("  配船予定を更新: " + (Object.entries(fleet.departures)
+        .map(([k, v]) => k + " " + v.length + "便").join(" / ") || "なし") +
+        "（" + fleet.from + "〜" + fleet.to + "）");
     } catch (err) {
       log("  配船予定の取得に失敗: " + err.message);
       notify.push("- 配船予定の取得に失敗: " + err.message);

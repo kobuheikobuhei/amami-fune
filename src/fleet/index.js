@@ -104,9 +104,16 @@ export async function fetchFleet({ userAgent, now, back = 1, ahead = 3, timetabl
   const dates = windowDates(today, back, ahead);
 
   const departures = {};
-  const problems = [];
   const notes = [];
   const sources = {};
+
+  // 矛盾には範囲を持たせる。以前は1本の配列に積んでいたため、奄美海運の
+  // 1件で鹿児島航路まで含めて「現在の運航」が丸ごと消える作りだった。
+  // 壊れている航路だけを落とし、確かな航路は残す。
+  const flaws = [];
+  const fail = (keys, texts) => {
+    for (const text of texts) flaws.push({ keys, text });
+  };
 
   // ── 鹿児島航路（マルエー・マリックス）──
   // 2社が1日1便を分け合うので、重ねて突き合わせられる。
@@ -125,32 +132,47 @@ export async function fetchFleet({ userAgent, now, back = 1, ahead = 3, timetabl
     const merged = merge({ marue, marix, dates, direction });
     kagoshima[direction] = merged.departures;
     departures['kagoshima_okinawa_' + direction] = merged.departures;
-    problems.push(...merged.problems);
+    fail(['kagoshima_okinawa_' + direction], merged.problems);
     notes.push(...merged.notes);
   }
-  problems.push(...checkCycle(kagoshima));
+  fail(['kagoshima_okinawa_down', 'kagoshima_okinawa_up'], checkCycle(kagoshima));
 
   // ── 奄美海運 ──
   // 1社しかないため会社どうしの突き合わせができない。
   // 代わりに、公式の案内が前提どおりかを確かめてから使う。
+  const AMAMI = ['amamikaiun_down', 'amamikaiun_up'];
   try {
     const timetable = { down: timetables.amamikaiun_down, up: timetables.amamikaiun_up };
-    const notice = await amami.fetchNotice({ userAgent });
+    const notice = await amami.fetchNotice({ userAgent, today });
     sources.amamikaiun = notice.url;
     const bad = amami.verify(notice, timetable);
     if (bad.length) {
-      problems.push(...bad.map((p) => '奄美海運: ' + p));
+      fail(AMAMI, bad.map((p) => '奄美海運: ' + p));
     } else {
-      const down = amami.departuresFor(dates, timetable.down);
-      const up = amami.departuresFor(dates, timetable.up);
-      problems.push(...amami.checkCycle({ down, up, upTo: dates[dates.length - 1] })
+      // 体制の切り替えをまたぐ数日は、案内が受け持つ日付だけに使う。
+      // 期間の外は予定が分からないので、便を作らない。
+      const inForce = amami.datesInForce(dates, notice);
+      if (inForce.length < dates.length) {
+        notes.push('奄美海運: この案内が受け持つのは ' +
+          (notice.from ?? '—') + '〜' + (notice.to ?? '—') + ' です');
+      }
+      const down = amami.departuresFor(inForce, timetable.down);
+      const up = amami.departuresFor(inForce, timetable.up);
+      fail(AMAMI, amami.checkCycle({ down, up, upTo: inForce[inForce.length - 1] })
         .map((p) => '奄美海運: ' + p));
       departures.amamikaiun_down = down;
       departures.amamikaiun_up = up;
     }
   } catch (err) {
-    problems.push('奄美海運: 運航スケジュールを取得できませんでした — ' + err.message);
+    fail(AMAMI, ['奄美海運: 運航スケジュールを取得できませんでした — ' + err.message]);
   }
+
+  // 範囲の分かっている矛盾は、その航路の予定だけを取り下げる。
+  // 範囲の分からない矛盾（blocked が空のまま残るもの）があれば、
+  // 何を信じてよいか判断できないので、呼び出し側が全部を止める。
+  const blocked = new Set();
+  for (const f of flaws) for (const k of f.keys ?? []) blocked.add(k);
+  for (const k of blocked) delete departures[k];
 
   return {
     checked_at: now,
@@ -158,7 +180,9 @@ export async function fetchFleet({ userAgent, now, back = 1, ahead = 3, timetabl
     to: dates[dates.length - 1],
     sources,
     departures,
-    problems,
+    problems: flaws.map((f) => f.text),
+    unscoped: flaws.filter((f) => !f.keys?.length).map((f) => f.text),
+    blocked: [...blocked],
     notes,
   };
 }

@@ -31,6 +31,8 @@ import { readCredentials, getAccessToken } from './publisher.js';
 
 const PHASE = Number(process.env.PHASE ?? 1);
 const STALE_NOTICE_DAYS = 90;
+// 書き写して持っている船の割り当ての、入替予定日が何日前から気になるか。
+const SHIPS_SWAP_NOTICE_DAYS = 30;
 
 const WATCHERS = {
   'aline-kagoshima-rss': watchAline,
@@ -272,6 +274,29 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
           routeKey + ": " + gone.join(", ") + " が0便（" + fleet.from + " 〜 " + fleet.to +
           "）— ドック入りでなければ読み取りが壊れています");
       }
+    }
+
+    // 書き写して持っている割り当ての、期限が来ていないか。
+    //
+    // 奄美海運はどの曜日にどちらの船が出るかを公式のPDFに載せておらず、
+    // お知らせの本文にしかない。data/timetable.yml に書き写して持つほか
+    // 手がなく、4ヶ月ごとに下り便・上り便の船が入れ替わる決まりになって
+    // いる。入れ替わっても案内のPDFは変わらないため、自動では気づけない。
+    //
+    // 週3便から週4便への切り替えのときは、期限切れの案内を読み続けて
+    // 切り替え前日まで誰も気づかなかった（2026-11-01 に発覚）。
+    // 同じことを繰り返さないよう、予定日が近づいたら知らせる。
+    for (const [key, t] of Object.entries(ctx.cfg.timetables ?? {})) {
+      if (!t.ships_swap_after) continue;
+      const days = Math.floor((new Date(t.ships_swap_after + "T00:00:00Z") - new Date(today + "T00:00:00Z")) / 86400000);
+      if (days > SHIPS_SWAP_NOTICE_DAYS) continue;
+      const ships = (t.fleet ?? []).map((f) => f.ship + "：" + f.weekdays.join("・")).join("、");
+      add(days < 0 ? "重大" : "要確認", "配船",
+        days < 0
+          ? "船の入替予定日を" + (-days) + "日過ぎています"
+          : "船の入替予定日まで" + days + "日です",
+        key + "（" + t.ships_swap_after + "）いまの割り当て " + ships +
+          " — 公式のお知らせで確かめ、data/timetable.yml を直してください");
     }
   }
   return { ...ctx, candidates, ledger, posts, findings };
