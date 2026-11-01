@@ -36,6 +36,15 @@ function daysBetween(a, b) {
 }
 
 /**
+ * 昨日より前に終わった運航日か。今さら知らせても意味がない。
+ * 期間は終わりの日で判断する（ドック期間の途中で始めても掲載されるように）。
+ */
+function alreadyOver(entry, now) {
+  const lastDay = entry.service_date_end ?? entry.service_date;
+  return daysBetween(now, lastDay + 'T23:59:59Z') > 1;
+}
+
+/**
  * 観測結果を候補イベントへ変換する。
  * 同じ鍵に複数の候補があれば、公開日時が新しいものを採る（＝続報が古い情報に勝つ）。
  */
@@ -47,17 +56,22 @@ export function toCandidates(observations, { now }) {
       if (!entry.status || NOT_ARTICLE.has(entry.status)) continue;
 
 
-      // 昨日より前に終わった運航日は、今さら知らせても意味がないので投稿しない。
-      // 期間の場合は終わりの日で判断する（ドック期間の途中で始めても掲載されるように）。
       const publishedAt = obs.published_at ?? now;
 
-      const lastDay = entry.service_date_end ?? entry.service_date;
-      if (daysBetween(now, lastDay + 'T23:59:59Z') > 1) continue;
+      if (alreadyOver(entry, now)) continue;
 
       // 同じ発表に含まれる他の便。読者が「いつ戻るのか」を追加の記事を探さずに
       // 把握できるよう、記事に併記するために持ち回る。
+      //
+      // 終わった運航日は、記事にしないのと同じ理由で併記もしない。
+      // 運航再開の発表は経緯から書き起こす。「令和8年5月16日(土)の機関故障に
+      // 伴い運航を休止しておりましたが、令和8年11月2日(月)より運航を再開し」
+      // ——この一文には日付が2つあり、どちらがどの状態かは対応づけられない
+      // （specificity 1）。題名の「運航再開」が両方に付き、「2026年5月16日(土)
+      // 運航再開」と併記されて、故障した日を再開日として読ませていた。
+      // 半年前に終わった日を併記して、読者が得るものはない。
       const related = (obs.entries ?? [])
-        .filter((o) => o !== entry)
+        .filter((o) => o !== entry && !alreadyOver(o, now))
         .map((o) => ({
           service_date: o.service_date,
           service_date_end: o.service_date_end ?? null,
