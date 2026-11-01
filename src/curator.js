@@ -101,10 +101,25 @@ export function toCandidates(observations, { now }) {
 }
 
 /**
+ * 取り消したときの発表と、いま見ている発表が同じものか。
+ *
+ * 同じなら、取り消した判断はそのまま効く。書き換わっていれば効かせない。
+ * こちらの判断はあのときの文面に対するもので、新しい文面には及ばない。
+ */
+export function sameNotice(before, after) {
+  return before.status === after.status &&
+    before.evidence === after.evidence &&
+    before.source_url === after.source_url;
+}
+
+/**
  * 台帳と突き合わせて、新規・続報・変化なしに振り分ける。
  * seedOnly は初回実行時に真になり、台帳には記録するが投稿はしない。
+ * withdrawn は取り消した便の控え。同じ発表から作り直さないために使う。
  */
-export function diffAgainstLedger(candidates, ledger, { seedOnlySources = new Set(), now }) {
+export function diffAgainstLedger(
+  candidates, ledger, { seedOnlySources = new Set(), withdrawn = new Map(), now }
+) {
   const actions = [];
 
   for (const c of candidates) {
@@ -112,6 +127,12 @@ export function diffAgainstLedger(candidates, ledger, { seedOnlySources = new Se
     const prev = ledger.get(c.event_key);
 
     if (!prev) {
+      // 取り消した便は、同じ発表から作り直さない。
+      const gone = withdrawn.get(c.event_key);
+      if (gone && sameNotice(gone, c)) {
+        actions.push({ type: 'withheld', candidate: c, event: gone });
+        continue;
+      }
       actions.push({
         type: seeding ? 'seed' : 'create',
         candidate: c,

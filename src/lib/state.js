@@ -75,6 +75,25 @@ export function latestEventsByKey(events) {
   return map;
 }
 
+/**
+ * 取り消した便の控え。event_key → 取り消したときの行。
+ *
+ * 取り消しは効き続けなければならない。記事を消しても公式の発表はそのまま
+ * 残るため、台帳から外れた便は次の収集では「初めて見た便」になる。何もし
+ * なければ、同じ誤記事をもう一度投稿してしまう。
+ * 「フェリーきかい 運航再開」で実際にそうなりかけた（2026-11-01）。
+ *
+ * 取り消した後に載せ直した便は控えから外す。やり直せる状態に戻す。
+ */
+export function withdrawnEventsByKey(events) {
+  const map = new Map();
+  for (const e of events) {
+    if (e.withdrawn) map.set(e.event_key, e);
+    else map.delete(e.event_key);
+  }
+  return map;
+}
+
 export function appendEvent(event) {
   ensureDir(EVENTS_PATH);
   appendFileSync(EVENTS_PATH, JSON.stringify(event) + '\n', 'utf8');

@@ -22,11 +22,13 @@ import { loadConfig, activeRouteIds, ROOT } from './lib/config.js';
 import { watchAline } from './watchers/aline.js';
 import { watchMarix } from './watchers/marix.js';
 import { watchKyodogumi } from './watchers/kyodogumi.js';
-import { toCandidates, ongoingNotices } from './curator.js';
+import { toCandidates, ongoingNotices, sameNotice } from './curator.js';
 import { buildPermalink } from './writer.js';
 import { classify, NOT_ARTICLE, STATUS_LABEL } from './lib/status.js';
 import { jstDate } from './lib/text.js';
-import { readEvents, latestEventsByKey, readHealth, readFleet } from './lib/state.js';
+import {
+  readEvents, latestEventsByKey, withdrawnEventsByKey, readHealth, readFleet,
+} from './lib/state.js';
 import { readCredentials, getAccessToken } from './publisher.js';
 
 const PHASE = Number(process.env.PHASE ?? 1);
@@ -154,15 +156,27 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
   const ctx = await runAudit({ now });
   const { today, observations, findings, add } = ctx;
 
+  const allEvents = readEvents();
   const candidates = toCandidates(observations, { now });
-  const ledger = latestEventsByKey(readEvents());
+  const ledger = latestEventsByKey(allEvents);
+  const withdrawn = withdrawnEventsByKey(allEvents);
 
   // ── 公式に出ているのに台帳に無いもの ──
+  //
+  // 取り消した便はここに毎回現れる。記事を消しても公式の発表は残るため。
+  // 欠落として挙げると、こちらが承知で載せていないものを毎回知らせることに
+  // なる。報告の冒頭に並べて、載せていないことだけが見えるようにする。
+  const withheld = [];
   for (const c of candidates) {
-    if (!ledger.has(c.event_key)) {
-      add('重大', '欠落', '公式に出ているのに台帳にありません',
-        `${c.service_date} ${STATUS_LABEL[c.status]} ${c.ship ?? c.operator_id} / ${c.source_url}`);
+    if (ledger.has(c.event_key)) continue;
+    const gone = withdrawn.get(c.event_key);
+    if (gone && sameNotice(gone, c)) {
+      withheld.push(`${c.service_date} ${STATUS_LABEL[c.status]} ${c.ship ?? c.operator_id}` +
+        ` — ${gone.withdrawn_reason ?? '取り消し'}`);
+      continue;
     }
+    add('重大', '欠落', '公式に出ているのに台帳にありません',
+      `${c.service_date} ${STATUS_LABEL[c.status]} ${c.ship ?? c.operator_id} / ${c.source_url}`);
   }
 
   // ── 台帳にあるのに記事が無いもの ──
@@ -299,11 +313,13 @@ export async function runFullAudit({ now = new Date().toISOString() } = {}) {
           " — 公式のお知らせで確かめ、data/timetable.yml を直してください");
     }
   }
-  return { ...ctx, candidates, ledger, posts, findings };
+  return { ...ctx, candidates, ledger, posts, findings, withheld };
 }
 
 /** 報告文を組み立てる */
-export function formatReport({ now, today, findings, candidates, notices, posts, ledger }) {
+export function formatReport({
+  now, today, findings, candidates, notices, posts, ledger, withheld = [],
+}) {
   const jst = new Date(now).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
   const serious = findings.filter((f) => f.level === '重大');
   const check = findings.filter((f) => f.level === '要確認');
@@ -315,6 +331,10 @@ export function formatReport({ now, today, findings, candidates, notices, posts,
   lines.push(`- 継続中のお知らせ: ${notices?.length ?? 0}件`);
   lines.push(`- 台帳: ${ledger?.size ?? 0}件`);
   lines.push(`- ブログの記事: ${posts?.length ?? 0}件`);
+  if (withheld.length) {
+    lines.push(`- こちらの判断で載せていない便: ${withheld.length}件`);
+    for (const w of withheld) lines.push(`    ${w}`);
+  }
   lines.push('');
 
   if (!findings.length) {

@@ -16,7 +16,7 @@ import { watchKkb, changedBlocks } from './watchers/kkb.js';
 import { watchWeather } from './watchers/weather.js';
 import { decideMode, shouldRun } from './scheduler.js';
 import {
-  readSnapshot, writeSnapshot, readEvents, latestEventsByKey, appendEvent,
+  readSnapshot, writeSnapshot, readEvents, latestEventsByKey, withdrawnEventsByKey, appendEvent,
   readHealth, writeHealth, recordSuccess, recordFailure,
   readMode, writeMode, readPageIds, writePageIds, writeNotification, writeDiagnostics,
   readFleet, writeFleet,
@@ -231,13 +231,24 @@ async function main() {
     (acc[n.route_id] ??= []).push(n);
     return acc;
   }, {});
-  const ledger = latestEventsByKey(readEvents());
-  const actions = diffAgainstLedger(candidates, ledger, { seedOnlySources, now });
+  const allEvents = readEvents();
+  const ledger = latestEventsByKey(allEvents);
+  const withdrawn = withdrawnEventsByKey(allEvents);
+  const actions = diffAgainstLedger(candidates, ledger, { seedOnlySources, withdrawn, now });
 
   const created = actions.filter((a) => a.type === 'create');
   const updated = actions.filter((a) => a.type === 'update');
   const seeded = actions.filter((a) => a.type === 'seed');
-  log('\n候補' + candidates.length + '件 → 新規' + created.length + ' / 続報' + updated.length + ' / 初回記録' + seeded.length);
+  const withheld = actions.filter((a) => a.type === 'withheld');
+  log('\n候補' + candidates.length + '件 → 新規' + created.length + ' / 続報' + updated.length +
+    ' / 初回記録' + seeded.length +
+    (withheld.length ? ' / 取り消し済み' + withheld.length : ''));
+  // 取り消した便が公式に出たままであることは、毎回見えるようにしておく。
+  // 黙って落とすと、載せていないことに誰も気づけない。
+  for (const a of withheld) {
+    log('  [取り消し済み] ' + (a.candidate.ship ?? a.candidate.operator_id) + ' ' +
+      a.candidate.service_date + ' — ' + (a.event.withdrawn_reason ?? '取り消し'));
+  }
 
   // 記事にもメニューと台風の知らせを入れるため、投稿より先に用意する。
   const pageIds = readPageIds();
