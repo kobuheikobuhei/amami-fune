@@ -210,7 +210,16 @@ export function checkCycle(departures) {
   }
   return problems;
 }
-/** 取り直すべきかを決める。既定は12時間ごと、または窓が明日に届かないとき */
+/**
+ * 取り直すべきかを決める。既定は12時間ごと、または窓が明日に届かないとき。
+ *
+ * 日付が変わっていたら、時間が経っていなくても取り直す。
+ * 運航体制の切り替わりは必ず日の境目で起きる（「11月2日から週4便」）。
+ * 前の日に取った予定は、新しい案内ではなく古い案内から作られている。
+ * 11月1日の夕方に取った予定が、11月2日の下り便をフェリーきかいのままに
+ * していた。実際はフェリーあまみの担当で、切り替わりの初日に、その日の
+ * 夕方に出る船を間違えて載せることになる。
+ */
 export function shouldRefresh(previous, now, { hours = 12 } = {}) {
   if (!previous?.checked_at) return true;
   // 形が変わったときも取り直す（航路ごとに分ける前の記録が残っている場合）
@@ -218,5 +227,6 @@ export function shouldRefresh(previous, now, { hours = 12 } = {}) {
   if (!keys.includes('kagoshima_okinawa_down')) return true;
   const tomorrow = addDays(jstDate(now), 1);
   if (!previous.to || previous.to < tomorrow) return true;
+  if (jstDate(previous.checked_at) < jstDate(now)) return true;
   return (new Date(now) - new Date(previous.checked_at)) / 36e5 >= hours;
 }
