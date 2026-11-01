@@ -1,117 +1,13 @@
 {
-  "fetched_at": "2026-10-31T23:40:05.131Z",
+  "fetched_at": "2026-11-01T02:00:19.709Z",
   "items": [
     {
       "guid": "https://marixline.com/service/downstream20261101/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261030/",
       "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261030/",
-      "hash": "cancelled欠航"
     },
     {
       "guid": "https://marixline.com/service/upstream20261101/",
       "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261028/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261026/",
-      "hash": "extra航行経路変更"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261023/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261020/",
-      "hash": "extra航行経路変更"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261017/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261014/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261012/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261010/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261008/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261006/",
-      "hash": "extra航行経路変更"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261004/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/downstream20261002/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261028/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261025/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261022/",
-      "hash": "cancelled欠航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261019/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261016/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261014/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261012/",
-      "hash": "normal通常運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261010/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261008/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261006/",
-      "hash": "extra航行経路変更"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261004/",
-      "hash": "conditional条件付運航"
-    },
-    {
-      "guid": "https://marixline.com/service/upstream20261002/",
-      "hash": "normal通常運航"
     }
   ]
 }
