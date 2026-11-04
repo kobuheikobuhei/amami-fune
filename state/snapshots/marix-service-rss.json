@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-04T03:50:05.206Z",
+  "fetched_at": "2026-11-04T08:29:20.807Z",
   "items": [
     {
       "guid": "https://marixline.com/service/downstream20261103/",
@@ -7,6 +7,10 @@
     },
     {
       "guid": "https://marixline.com/service/upstream20261103/",
+      "hash": "conditional条件付運航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20261105/",
       "hash": "conditional条件付運航"
     },
     {
