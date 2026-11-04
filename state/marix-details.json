@@ -156,8 +156,15 @@
   },
   "https://marixline.com/service/downstream20261105/": {
     "ship": "クイーンコーラルクロス",
-    "port_notes": [],
+    "port_notes": [
+      {
+        "kind": "conditional",
+        "ports": [
+          "和泊港"
+        ]
+      }
+    ],
     "date": "2026-11-05",
-    "label": "通常運航"
+    "label": "条件付運航"
   }
 }
