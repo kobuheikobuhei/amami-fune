@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-11-07T11:00:02.613Z",
+  "fetched_at": "2026-11-07T11:20:02.322Z",
   "items": [
     {
       "guid": "https://www.aline-ferry.com/?post_type=status&#038;p=29367",
@@ -7,6 +7,10 @@
     },
     {
       "guid": "https://www.aline-ferry.com/?post_type=status&#038;p=21525",
+      "hash": "208qiqnu3q3"
+    },
+    {
+      "guid": "https://www.aline-ferry.com/?post_type=status&#038;p=29342",
       "hash": "208qiqnu3q3"
     }
   ]
