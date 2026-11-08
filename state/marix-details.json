@@ -1,10 +1,4 @@
 {
-  "https://marixline.com/service/upstream20261025/": {
-    "ship": "クイーンコーラルプラス",
-    "port_notes": [],
-    "date": "2026-10-25",
-    "label": "欠航"
-  },
   "https://marixline.com/service/downstream20261026/": {
     "ship": "クイーンコーラルプラス",
     "port_notes": [
@@ -199,5 +193,11 @@
     ],
     "date": "2026-11-09",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/downstream20261109/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [],
+    "date": "2026-11-09",
+    "label": "通常運航"
   }
 }
