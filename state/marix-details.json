@@ -195,5 +195,11 @@
     ],
     "date": "2026-11-09",
     "label": "航行経路変更"
+  },
+  "https://marixline.com/service/upstream20261111/": {
+    "ship": "クイーンコーラルクロス",
+    "port_notes": [],
+    "date": "2026-11-11",
+    "label": "欠航"
   }
 }
