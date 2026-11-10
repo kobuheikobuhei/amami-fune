@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-09T19:39:00.058Z",
+  "checked_at": "2026-11-10T10:41:59.517Z",
   "from": "2026-11-09",
   "to": "2026-11-13",
   "sources": {
@@ -61,14 +61,6 @@
         "ship": "フェリーあけぼの",
         "operator_id": "marue",
         "name": "マルエーフェリー",
-        "direction": "up"
-      },
-      {
-        "date": "2026-11-11",
-        "ship": "クイーンコーラルクロス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
         "direction": "up"
       },
       {
@@ -143,5 +135,7 @@
   "problems": [],
   "unscoped": [],
   "blocked": [],
-  "notes": []
+  "notes": [
+    "2026-11-11 は両社とも那覇発の予定がありません"
+  ]
 }
