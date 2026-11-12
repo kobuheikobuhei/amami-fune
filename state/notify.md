@@ -1,5 +1,5 @@
-# 船舶動静ボット 通知 (2026-11-12T17:51:30.335Z)
+# 船舶動静ボット 通知 (2026-11-12T23:07:12.204Z)
 
-- 取得失敗: aline-kagoshima-rss — HTTP 404（連続15回）
-- 取得失敗: aline-amami-rss — HTTP 404（連続15回）
-- 配船予定の取得に失敗: HTTP 404
+- 取得失敗: aline-kagoshima-rss — HTTP 403（連続16回）
+- 取得失敗: aline-amami-rss — HTTP 403（連続16回）
+- 配船予定の取得に失敗: HTTP 403
