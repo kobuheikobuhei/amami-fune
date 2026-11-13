@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-11-11T19:57:50.187Z",
-  "from": "2026-11-11",
-  "to": "2026-11-15",
+  "checked_at": "2026-11-13T12:48:10.074Z",
+  "from": "2026-11-12",
+  "to": "2026-11-16",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -9,13 +9,6 @@
   },
   "departures": {
     "kagoshima_okinawa_down": [
-      {
-        "date": "2026-11-11",
-        "ship": "フェリーあけぼの",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
       {
         "date": "2026-11-12",
         "ship": "クイーンコーラルクロス",
@@ -44,6 +37,13 @@
         "depart": "18:00",
         "operator_id": "marix",
         "name": "マリックスライン",
+        "direction": "down"
+      },
+      {
+        "date": "2026-11-16",
+        "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
         "direction": "down"
       }
     ],
@@ -76,6 +76,13 @@
         "operator_id": "marue",
         "name": "マルエーフェリー",
         "direction": "up"
+      },
+      {
+        "date": "2026-11-16",
+        "ship": "フェリーあけぼの",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
@@ -92,16 +99,16 @@
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "down"
+      },
+      {
+        "date": "2026-11-16",
+        "ship": "フェリーあまみ",
+        "operator_id": "amamikaiun",
+        "name": "奄美海運",
+        "direction": "down"
       }
     ],
     "amamikaiun_up": [
-      {
-        "date": "2026-11-11",
-        "ship": "フェリーきかい",
-        "operator_id": "amamikaiun",
-        "name": "奄美海運",
-        "direction": "up"
-      },
       {
         "date": "2026-11-13",
         "ship": "フェリーあまみ",
@@ -121,7 +128,5 @@
   "problems": [],
   "unscoped": [],
   "blocked": [],
-  "notes": [
-    "2026-11-11 は両社とも那覇発の予定がありません"
-  ]
+  "notes": []
 }
