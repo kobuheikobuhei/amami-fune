@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-11-17T10:01:56.894Z",
-  "from": "2026-11-16",
-  "to": "2026-11-20",
+  "checked_at": "2026-11-17T19:31:17.547Z",
+  "from": "2026-11-17",
+  "to": "2026-11-21",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -9,13 +9,6 @@
   },
   "departures": {
     "kagoshima_okinawa_down": [
-      {
-        "date": "2026-11-16",
-        "ship": "フェリー波之上",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
       {
         "date": "2026-11-17",
         "ship": "フェリーあけぼの",
@@ -45,16 +38,16 @@
         "operator_id": "marix",
         "name": "マリックスライン",
         "direction": "down"
-      }
-    ],
-    "kagoshima_okinawa_up": [
+      },
       {
-        "date": "2026-11-16",
+        "date": "2026-11-21",
         "ship": "フェリーあけぼの",
         "operator_id": "marue",
         "name": "マルエーフェリー",
-        "direction": "up"
-      },
+        "direction": "down"
+      }
+    ],
+    "kagoshima_okinawa_up": [
       {
         "date": "2026-11-17",
         "ship": "クイーンコーラルクロス",
@@ -84,16 +77,16 @@
         "operator_id": "marix",
         "name": "マリックスライン",
         "direction": "up"
+      },
+      {
+        "date": "2026-11-21",
+        "ship": "フェリー波之上",
+        "operator_id": "marue",
+        "name": "マルエーフェリー",
+        "direction": "up"
       }
     ],
     "amamikaiun_down": [
-      {
-        "date": "2026-11-16",
-        "ship": "フェリーあまみ",
-        "operator_id": "amamikaiun",
-        "name": "奄美海運",
-        "direction": "down"
-      },
       {
         "date": "2026-11-17",
         "ship": "フェリーきかい",
@@ -134,6 +127,13 @@
       {
         "date": "2026-11-20",
         "ship": "フェリーあまみ",
+        "operator_id": "amamikaiun",
+        "name": "奄美海運",
+        "direction": "up"
+      },
+      {
+        "date": "2026-11-21",
+        "ship": "フェリーきかい",
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "up"
