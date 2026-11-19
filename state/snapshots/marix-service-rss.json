@@ -1,8 +1,16 @@
 {
-  "fetched_at": "2026-11-19T13:00:03.879Z",
+  "fetched_at": "2026-11-19T18:46:53.770Z",
   "items": [
     {
       "guid": "https://marixline.com/service/downstream20261118/",
+      "hash": "normal通常運航"
+    },
+    {
+      "guid": "https://marixline.com/service/downstream20261120/",
+      "hash": "normal通常運航"
+    },
+    {
+      "guid": "https://marixline.com/service/upstream20261120/",
       "hash": "normal通常運航"
     },
     {
