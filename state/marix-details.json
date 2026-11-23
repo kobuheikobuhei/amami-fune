@@ -1,42 +1,4 @@
 {
-  "https://marixline.com/service/upstream20261109/": {
-    "ship": "クイーンコーラルプラス",
-    "port_notes": [
-      {
-        "kind": "conditional",
-        "ports": [
-          "与論港",
-          "和泊港",
-          "亀徳港"
-        ]
-      }
-    ],
-    "date": "2026-11-09",
-    "label": "条件付運航"
-  },
-  "https://marixline.com/service/downstream20261109/": {
-    "ship": "クイーンコーラルクロス",
-    "port_notes": [
-      {
-        "kind": "no_call",
-        "ports": [
-          "亀徳港",
-          "和泊港",
-          "与論港",
-          "本部港"
-        ]
-      },
-      {
-        "kind": "conditional",
-        "ports": [
-          "名瀬港",
-          "那覇港"
-        ]
-      }
-    ],
-    "date": "2026-11-09",
-    "label": "航行経路変更"
-  },
   "https://marixline.com/service/upstream20261111/": {
     "ship": "クイーンコーラルクロス",
     "port_notes": [],
@@ -113,5 +75,11 @@
     ],
     "date": "2026-11-24",
     "label": "条件付運航"
+  },
+  "https://marixline.com/service/downstream20261124/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [],
+    "date": "2026-11-24",
+    "label": "通常運航"
   }
 }
