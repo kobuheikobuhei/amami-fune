@@ -1,10 +1,4 @@
 {
-  "https://marixline.com/service/downstream20261112/": {
-    "ship": "クイーンコーラルクロス",
-    "port_notes": [],
-    "date": "2026-11-12",
-    "label": "通常運航"
-  },
   "https://marixline.com/service/upstream20261114/": {
     "ship": "クイーンコーラルクロス",
     "port_notes": [],

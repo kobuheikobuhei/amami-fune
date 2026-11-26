@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-11-26T04:39:49.638Z",
-  "from": "2026-11-25",
-  "to": "2026-11-29",
+  "checked_at": "2026-11-26T15:05:01.105Z",
+  "from": "2026-11-26",
+  "to": "2026-11-30",
   "sources": {
     "marue": "https://www.aline-ferry.com/cms/wp-content/uploads/2022/02/6d5e53b7057cf6c200fbd92bd92a187f.pdf",
     "marix": "https://marixline.com/price_schedule/",
@@ -10,13 +10,6 @@
   "departures": {
     "kagoshima_okinawa_down": [
       {
-        "date": "2026-11-25",
-        "ship": "フェリーあけぼの",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "down"
-      },
-      {
         "date": "2026-11-26",
         "ship": "クイーンコーラルクロス",
         "depart": "18:00",
@@ -44,18 +37,19 @@
         "ship": "フェリーあけぼの",
         "operator_id": "marue",
         "name": "マルエーフェリー",
+        "direction": "down"
+      },
+      {
+        "date": "2026-11-30",
+        "ship": "クイーンコーラルクロス",
+        "depart": "18:00",
+        "operator_id": "marix",
+        "name": "マリックスライン",
         "direction": "down"
       }
     ],
     "kagoshima_okinawa_up": [
       {
-        "date": "2026-11-25",
-        "ship": "フェリー波之上",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "up"
-      },
-      {
         "date": "2026-11-26",
         "ship": "クイーンコーラルプラス",
         "depart": "07:00",
@@ -83,6 +77,14 @@
         "ship": "フェリー波之上",
         "operator_id": "marue",
         "name": "マルエーフェリー",
+        "direction": "up"
+      },
+      {
+        "date": "2026-11-30",
+        "ship": "クイーンコーラルプラス",
+        "depart": "07:00",
+        "operator_id": "marix",
+        "name": "マリックスライン",
         "direction": "up"
       }
     ],
@@ -100,16 +102,16 @@
         "operator_id": "amamikaiun",
         "name": "奄美海運",
         "direction": "down"
+      },
+      {
+        "date": "2026-11-30",
+        "ship": "フェリーあまみ",
+        "operator_id": "amamikaiun",
+        "name": "奄美海運",
+        "direction": "down"
       }
     ],
     "amamikaiun_up": [
-      {
-        "date": "2026-11-25",
-        "ship": "フェリーきかい",
-        "operator_id": "amamikaiun",
-        "name": "奄美海運",
-        "direction": "up"
-      },
       {
         "date": "2026-11-27",
         "ship": "フェリーあまみ",
