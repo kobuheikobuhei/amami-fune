@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-26T15:05:01.105Z",
+  "checked_at": "2026-11-27T06:21:05.823Z",
   "from": "2026-11-26",
   "to": "2026-11-30",
   "sources": {
@@ -48,46 +48,6 @@
         "direction": "down"
       }
     ],
-    "kagoshima_okinawa_up": [
-      {
-        "date": "2026-11-26",
-        "ship": "クイーンコーラルプラス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      },
-      {
-        "date": "2026-11-27",
-        "ship": "フェリーあけぼの",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "up"
-      },
-      {
-        "date": "2026-11-28",
-        "ship": "クイーンコーラルクロス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      },
-      {
-        "date": "2026-11-29",
-        "ship": "フェリー波之上",
-        "operator_id": "marue",
-        "name": "マルエーフェリー",
-        "direction": "up"
-      },
-      {
-        "date": "2026-11-30",
-        "ship": "クイーンコーラルプラス",
-        "depart": "07:00",
-        "operator_id": "marix",
-        "name": "マリックスライン",
-        "direction": "up"
-      }
-    ],
     "amamikaiun_down": [
       {
         "date": "2026-11-26",
@@ -128,8 +88,14 @@
       }
     ]
   },
-  "problems": [],
+  "problems": [
+    "2026-11-29 に複数の船が那覇を出港することになっています（フェリー波之上・クイーンコーラルクロス）"
+  ],
   "unscoped": [],
-  "blocked": [],
-  "notes": []
+  "blocked": [
+    "kagoshima_okinawa_up"
+  ],
+  "notes": [
+    "2026-11-28 は両社とも那覇発の予定がありません"
+  ]
 }
