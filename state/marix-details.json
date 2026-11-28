@@ -121,5 +121,19 @@
     "port_notes": [],
     "date": "2026-11-28",
     "label": "欠航"
+  },
+  "https://marixline.com/service/upstream20261130/": {
+    "ship": "クイーンコーラルプラス",
+    "port_notes": [
+      {
+        "kind": "no_call",
+        "ports": [
+          "那覇港",
+          "本部港"
+        ]
+      }
+    ],
+    "date": "2026-11-30",
+    "label": "航行経路変更"
   }
 }
